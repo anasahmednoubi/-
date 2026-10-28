@@ -23,8 +23,8 @@ h1{font-size:24px;margin:8px 0 16px}
 .brand h1{margin:0}
 .logo{flex:none;display:block;--lbg:var(--acc);--lfg:#fff;--lbd:transparent}
 .logo *{transition:fill .4s,stroke .4s}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .logo{--lbg:#fff;--lfg:var(--acc);--lbd:transparent}}
-:root[data-theme="dark"] .logo{--lbg:#fff;--lfg:var(--acc);--lbd:transparent}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .logo{--lbg:#000;--lfg:var(--acc);--lbd:rgba(255,255,255,.14)}}
+:root[data-theme="dark"] .logo{--lbg:#000;--lfg:var(--acc);--lbd:rgba(255,255,255,.14)}
 .logo .arc{animation:logoDraw 1s ease-out}
 @keyframes logoDraw{from{stroke-dasharray:0 82}}
 @media (prefers-reduced-motion:reduce){.logo .arc{animation:none}}
@@ -86,6 +86,15 @@ html[dir=ltr] .fill.wf::after,html[dir=ltr] .fill.we::after{animation-name:wflow
 .ipk .chip{padding:8px;font-size:20px;line-height:1;display:inline-flex}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50}
 #modal.hide{display:none}
+#modal:not(.hide){animation:mFade .3s ease-out}
+#modal:not(.hide) .sheet{animation:mUp .4s cubic-bezier(.22,.8,.3,1)}
+#modal.closing{animation:mFadeOut .24s ease forwards;pointer-events:none}
+#modal.closing .sheet{animation:mDown .24s ease forwards}
+@keyframes mFade{from{opacity:0}to{opacity:1}}
+@keyframes mFadeOut{from{opacity:1}to{opacity:0}}
+@keyframes mUp{from{transform:translateY(44px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes mDown{from{transform:none;opacity:1}to{transform:translateY(44px);opacity:0}}
+@media (prefers-reduced-motion:reduce){#modal:not(.hide),#modal:not(.hide) .sheet,#modal.closing,#modal.closing .sheet{animation:none!important}}
 .sheet{background:var(--card);color:var(--text);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto}
 .sheet label{flex:1 1 90px;font-size:13px;color:var(--mute)}
 .sheet label input{width:100%;margin-top:2px}
@@ -241,7 +250,7 @@ html.tbtop #tour{bottom:auto!important;top:calc(150px + env(safe-area-inset-top,
 <div class="task" id="sRt"></div>
 </div>
 </main>
-<div id="modal" class="hide"></div>
+<div id="modal" class="hide" onclick="if(event.target===this)closeEdit()"></div>
 <script>
 const LK="lang-v1";let lang="ar";try{if(localStorage.getItem(LK)==="en")lang="en"}catch(e){}
 const EN={"إنجازاتي":"My Achievements","لون البرنامج":"App color","المنجز":"Done","الإجمالي":"Total","ربط":"Link","أهلاً":"Hello","ربط الحساب بجوجل":"Link Google account","ربط الحساب بفيسبوك":"Link Facebook account","مرتبط":"Linked","غير مرتبط":"Not linked","إلغاء الربط":"Unlink","تم ربط الحساب":"Account linked","اكتب بريد جوجل صحيح.":"Enter a valid Google email.","بريدك على جوجل":"Your Google email","اسمك على فيسبوك":"Your Facebook name","الربط محفوظ على جهازك فقط، ولا يتم تسجيل دخول فعلي أو مزامنة بيانات.":"Linking is saved on this device only. No real sign-in or data sync happens.","إظهار الإشعارات على الجهاز":"Show notifications on this device","تم تفعيل الإشعارات":"Notifications enabled","إشعارات الجهاز غير متاحة هنا، لذلك ستظهر الإشعارات داخل البرنامج.":"Device notifications aren't available here, so notifications will appear inside the app.","تعذر تفعيل الإشعارات. اسمح بها من إعدادات المتصفح أو الجهاز.":"Couldn't enable notifications. Allow them in your browser or device settings.","هذا المتصفح لا يدعم الإشعارات.":"This browser doesn't support notifications.","أحسنت! تم تسجيل تقدمك في:":"Well done! Progress saved for:","أحسنت! أتممت الروتين:":"Well done! Routine completed:","الإشعارات":"Notifications","صوت نغمة الإشعارات":"Notification sound","نغمة إتمام المهام":"Task completion tone","نغمة إتمام الروتين":"Routine completion tone","رنين":"Chime","جرس":"Bell","فقاعة":"Pop","لحن":"Melody","بدون":"None","تجربة الصوت":"Play sound","بنفسجي":"Purple","أزرق":"Blue","تركواز":"Teal","أخضر":"Green","برتقالي":"Orange","أحمر":"Red","وردي":"Pink","رمادي":"Gray","إحصائيات":"Stats","مهام":"Tasks","روتين":"routines","اليوم":"Today","الأسبوع":"Week","الشهر":"Month","إضافة":"Add","إضافة روتين":"Add routine","إضافة مهمة":"Add task",
@@ -330,16 +339,23 @@ function animBars(box,pf,defer){
   });
   if(!hid)kick();
 }
+let treo=false;
+function treoBtn(){return '<button class="del" style="font-size:14px" onclick="togTReo()">'+(treo?ico("i:check","14px")+" "+T("تم"):ico("i:swap","14px")+" "+T("ترتيب"))+'</button>'}
+function togTReo(){treo=!treo;render();renderD()}
+function tCtl(id){
+  if(treo)return '<span class="drag" data-kind="T" data-id="'+id+'" aria-label="'+T("اسحب")+'" style="touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;font-size:22px;line-height:1;padding:6px 12px;color:var(--mute)">'+ico("i:menu")+'</span>';
+  return '<button class="del dots" onclick="openEdit(\'T\','+id+')" aria-label="'+T("تعديل")+'">'+ico("i:dots","20px")+'</button>';
+}
 function render(){
   const el=document.getElementById("list");
   const qs=((document.getElementById("qT")||{}).value||"").trim().toLowerCase();
   if(!tasks.length){el.innerHTML='<div class="empty">'+T("لا توجد مهام بعد. أضف أول مهمة من الأعلى.")+'</div>';return}
   const tl=qs?tasks.filter(t=>String(t.name).toLowerCase().includes(qs)):tasks;
   if(!tl.length){el.innerHTML='<div class="empty">'+T("لا توجد نتائج مطابقة")+'</div>';return}
-  el.innerHTML=tl.map(t=>{
+  el.innerHTML='<div class="head" style="margin:4px 2px 8px"><b>'+T("المهام")+'</b>'+treoBtn()+'</div>'+tl.map(t=>{
     const p=pct(t),K=key(today());
     return `<div class="task ${t.finished?"done":""}">
-      <div class="head"><span class="name-t" style="display:flex;align-items:center;gap:10px"><button class="ck${(t.finished||t.dk===K)?" on":""}" onclick="doneT(${t.id})" aria-label="${T("تم")}">${(t.finished||t.dk===K)?CK:""}</button><span class="${(t.finished||t.dk===K)?"str":""}">${ico(t.icon||"i:pin")} ${esc(t.name)}</span></span><span><button class="del dots" onclick="openEdit('T',${t.id})" aria-label="${T("تعديل")}">${ico("i:dots","20px")}</button><button class="del" onclick="confirmDel('T',${t.id})" aria-label="${T("حذف")}">${ico("i:x")}</button></span></div>
+      <div class="head"><span class="name-t" style="display:flex;align-items:center;gap:10px"><button class="ck${(t.finished||t.dk===K)?" on":""}" onclick="doneT(${t.id})" aria-label="${T("تم")}">${(t.finished||t.dk===K)?CK:""}</button><span class="${(t.finished||t.dk===K)?"str":""}">${ico(t.icon||"i:pin")} ${esc(t.name)}</span></span><span>${tCtl(t.id)}<button class="del" onclick="confirmDel('T',${t.id})" aria-label="${T("حذف")}">${ico("i:x")}</button></span></div>
       <div class="bar"><div class="fill" data-k="${t.id}" data-to="${p}" style="width:${PP["T"+t.id]!==undefined?PP["T"+t.id]:p}%;background:${col(PP["T"+t.id]!==undefined?PP["T"+t.id]:p)}"></div></div>
       <div class="meta"><span>${t.done} / ${t.target} ${esc(t.unit)}</span><span style="color:${col(p)};font-weight:600">${p}%</span></div>
       ${t.dk===K?`<div class="result" style="margin-bottom:8px">${T("إنجاز اليوم")} +${t.dadd} ${esc(t.unit)} — ${T("النسبة النهائية")} ${p}%</div>`:""}${t.finished?`<div class="result">${msg(t)}</div>`:`
@@ -390,7 +406,7 @@ function openAmt(id){
   const rem=Math.max(0,t.target-t.done);
   const m=document.getElementById("modal");
   m.innerHTML='<div class="sheet"><b>'+T("كم أنجزت اليوم؟")+'</b><div class="sub" style="margin-top:4px">'+ico(t.icon||"i:pin")+' '+esc(t.name)+' — '+T("المتبقي")+' '+rem+' '+esc(t.unit)+'</div><div class="row" style="margin-top:10px"><input class="name" id="amt" type="number" min="1" inputmode="numeric" placeholder="'+T("العدد الذي أنجزته")+' '+esc(t.unit)+'" value="'+(t.daily>0?Math.min(t.daily,rem):"")+'"><button onclick="confirmAmt('+id+')">'+T("تسجيل")+'</button><button class="ghost" onclick="closeEdit()">'+T("إلغاء")+'</button></div></div>';
-  m.classList.remove("hide");
+  openM(m);
   setTimeout(()=>{const a=document.getElementById("amt");if(a)a.focus()},50);
 }
 function confirmAmt(id){
@@ -498,8 +514,8 @@ function renderR(){
   const sl=fq?st.filter(x=>String(x.r.name).toLowerCase().includes(fq)):st;
   document.getElementById("sumBox").innerHTML='<div class="sub">'+T("نسبة إنجازك")+' '+(period==="M"?""+T("خلال الشهر")+"":""+T("خلال الأسبوع")+"")+'</div><div class="big" style="color:'+col(tp)+'">'+(tp===null?"—":tp+"%")+'</div><div class="bar"><div class="fill" data-k="all" data-to="'+(tp||0)+'" style="width:'+(PP["RSall"]!==undefined?PP["RSall"]:(tp||0))+'%;background:'+col(PP["RSall"]!==undefined?PP["RSall"]:tp)+'"></div></div><div class="sub">'+DNN+' '+T("من")+' '+SC+' '+T("مرة تم إنجازها")+'</div>';
   document.getElementById("rList").innerHTML=(st.length?'<div class="head" style="margin:4px 2px 8px"><b>'+T("جميع الروتينات")+'</b>'+reoBtn()+'</div>':'')+(fq&&!sl.length?'<div class="empty">'+T("لا توجد نتائج مطابقة")+'</div>':'')+sl.map(x=>{
-    const r=x.r,s=x.s,days=schedTxt(r);
-    return '<div class="task"><div class="head"><span class="name-t">'+ico(r.icon||"i:repeat")+' '+esc(r.name)+'</span><span>'+rowCtl(r.id,true)+'<button class="del" onclick="confirmDel(\'R\','+r.id+')" aria-label="'+T("حذف")+'">'+ico("i:x")+'</button></span></div><div class="sub">'+days+'</div><div class="wk">'+ORDER.map((dw,i)=>{const d=wkStart();d.setDate(d.getDate()+i);const kk=key(d),sch=due(r,d),on=!!r.log[kk];return '<button class="sq'+(on?' on':'')+(sch?'':' off')+(kk===k?' tdy':'')+'" '+(sch?'onclick="tickD('+r.id+',\''+kk+'\')"':'disabled')+' aria-label="'+DN[dw]+'"><span>'+DN[dw]+'</span><b>'+(on?CK:d.getDate())+'</b></button>'}).join('')+'</div><div class="bar"><div class="fill" data-k="'+r.id+'" data-to="'+(s.p||0)+'" style="width:'+(PP["R"+r.id]!==undefined?PP["R"+r.id]:(s.p||0))+'%;background:'+col(PP["R"+r.id]!==undefined?PP["R"+r.id]:s.p)+'"></div></div><div class="meta"><span>'+s.dn+' / '+s.sc+'</span><span style="color:'+col(s.p)+';font-weight:600">'+(s.p===null?"—":s.p+"%")+'</span></div></div>';
+    const r=x.r,s=x.s,days=schedTxt(r),wk7=ORDER.map((dw,i)=>{const d=wkStart();d.setDate(d.getDate()+i);return d}).filter(d=>due(r,d)),wt=wk7.length,wd=wk7.filter(d=>r.log[key(d)]).length,wp=wt?Math.round(wd/wt*100):0;
+    return '<div class="task"><div class="head"><span class="name-t">'+ico(r.icon||"i:repeat")+' '+esc(r.name)+'</span><span>'+rowCtl(r.id,true)+'<button class="del" onclick="confirmDel(\'R\','+r.id+')" aria-label="'+T("حذف")+'">'+ico("i:x")+'</button></span></div><div class="sub">'+days+'</div><div class="wk">'+ORDER.map((dw,i)=>{const d=wkStart();d.setDate(d.getDate()+i);const kk=key(d),sch=due(r,d),on=!!r.log[kk];return '<button class="sq'+(on?' on':'')+(sch?'':' off')+(kk===k?' tdy':'')+'" '+(sch?'onclick="tickD('+r.id+',\''+kk+'\')"':'disabled')+' aria-label="'+DN[dw]+'"><span>'+DN[dw]+'</span><b>'+(on?CK:d.getDate())+'</b></button>'}).join('')+'</div><div class="bar"><div class="fill" data-k="'+r.id+'" data-to="'+wp+'" style="width:'+(PP["R"+r.id]!==undefined?PP["R"+r.id]:wp)+'%;background:'+col(PP["R"+r.id]!==undefined?PP["R"+r.id]:wp)+'"></div></div><div class="meta"><span>'+wd+' / '+wt+'</span><span style="color:'+col(wt?wp:null)+';font-weight:600">'+(wt?wp+"%":"—")+'</span></div></div>';
   }).join("");
   animBars(document.getElementById("sumBox"),"RS");animBars(document.getElementById("rList"),"R");
 }
@@ -573,7 +589,7 @@ function openEdit(type,id){
   }
   h+='<button class="esm esv" onclick="saveEdit()">'+T("حفظ")+'</button><button class="ghost esm" onclick="closeEdit()">'+T("إلغاء")+'</button><button class="ghost esm" style="color:#d33;margin-inline-start:auto" onclick="confirmDel(\''+type+'\','+id+')">'+ico("i:trash","16px")+' '+T("حذف")+'</button></div></div>';
   const m=document.getElementById("modal");
-  m.innerHTML=h;m.classList.remove("hide");
+  m.innerHTML=h;openM(m);
   drawPick("E");
   if(type==="R")drawEDays();
 }
@@ -588,13 +604,20 @@ function confirmDel(type,id){
   if(!it)return;
   const m=document.getElementById("modal");
   m.innerHTML='<div class="sheet"><b>'+T("هل تريد حذف")+' '+(type==="T"?""+T("المهمة")+"":""+T("الروتين")+"")+' "'+esc(it.name)+'"'+T("؟")+'</b><div class="sub" style="margin-top:4px">'+T("لا يمكن التراجع عن هذا الإجراء.")+'</div><div class="row" style="margin-top:12px"><button style="background:#d33" onclick="doDel(\''+type+'\','+id+')">'+T("نعم، احذف")+'</button><button class="ghost" onclick="closeEdit()">'+T("إلغاء")+'</button></div></div>';
-  m.classList.remove("hide");
+  openM(m);
 }
 function doDel(type,id){
   closeEdit();
   if(type==="T")del(id);else delR(id);
 }
-function closeEdit(){ed=null;const m=document.getElementById("modal");m.classList.add("hide");m.innerHTML=""}
+let mT=null;
+function openM(m){clearTimeout(mT);m.classList.remove("closing");m.classList.remove("hide")}
+function closeEdit(){
+  ed=null;const m=document.getElementById("modal");
+  if(m.classList.contains("hide")||m.classList.contains("closing"))return;
+  clearTimeout(mT);m.classList.add("closing");
+  mT=setTimeout(()=>{m.classList.add("hide");m.classList.remove("closing");m.innerHTML=""},240);
+}
 function saveEdit(){
   if(!ed)return;
   const name=document.getElementById("en").value.trim();
@@ -713,9 +736,9 @@ function renderD(){
   drawSum(left,total);
   document.getElementById("dR").innerHTML='<div class="head"><b>'+T("روتين اليوم")+'</b>'+reoBtn()+'</div>'+(rs.length?rs.map(r=>
     '<div class="chk"><button class="ck'+(r.log[k]?" on":"")+'" onclick="tick('+r.id+')" aria-label="'+T("تم")+'">'+(r.log[k]?CK:"")+'</button><span class="'+(r.log[k]?"str":"")+'">'+ico(r.icon||"i:repeat")+' '+esc(r.name)+'</span>'+rowCtl(r.id,false)+'</div>').join(""):'<div class="sub" style="margin-top:8px">'+T("لا يوجد روتين اليوم.")+'</div>');
-  document.getElementById("dT").innerHTML="<b>"+T("المهام")+"</b>"+(ts.length?ts.map(t=>{
+  document.getElementById("dT").innerHTML='<div class="head"><b>'+T("المهام")+'</b>'+(ts.length?treoBtn():"")+'</div>'+(ts.length?ts.map(t=>{
     const p=pct(t),rem=Math.max(0,t.target-t.done);
-    return '<div style="margin-top:12px"><div class="head"><span style="display:flex;align-items:center;gap:10px"><button class="ck'+((t.finished||t.dk===k)?" on":"")+'" onclick="doneT('+t.id+')" aria-label="'+T("تم")+'">'+((t.finished||t.dk===k)?CK:"")+'</button><span class="'+((t.finished||t.dk===k)?"str":"")+'">'+ico(t.icon||"i:pin")+' '+esc(t.name)+'</span><button class="del dots" onclick="openEdit(\'T\','+t.id+')" aria-label="'+T("تعديل")+'">'+ico("i:dots","20px")+'</button></span><span style="color:'+col(p)+';font-weight:600">'+p+'%</span></div><div class="bar"><div class="fill" data-k="'+t.id+'" data-to="'+p+'" style="width:'+(PP["D"+t.id]!==undefined?PP["D"+t.id]:p)+'%;background:'+col(PP["D"+t.id]!==undefined?PP["D"+t.id]:p)+'"></div></div><div class="sub">'+T("أنجزت")+' '+t.done+' '+T("من")+' '+t.target+' '+esc(t.unit)+(t.dk===k?' (+'+t.dadd+' '+T("اليوم")+')':'')+'</div>'+(t.dk===k?'<div class="result" style="margin-top:8px">'+T("النسبة النهائية بعد إنجاز اليوم:")+' '+p+'%</div>':'')+'</div>';
+    return '<div class="trow" style="margin-top:12px"><div class="head"><span style="display:flex;align-items:center;gap:10px"><button class="ck'+((t.finished||t.dk===k)?" on":"")+'" onclick="doneT('+t.id+')" aria-label="'+T("تم")+'">'+((t.finished||t.dk===k)?CK:"")+'</button><span class="'+((t.finished||t.dk===k)?"str":"")+'">'+ico(t.icon||"i:pin")+' '+esc(t.name)+'</span>'+tCtl(t.id)+'</span><span style="color:'+col(p)+';font-weight:600">'+p+'%</span></div><div class="bar"><div class="fill" data-k="'+t.id+'" data-to="'+p+'" style="width:'+(PP["D"+t.id]!==undefined?PP["D"+t.id]:p)+'%;background:'+col(PP["D"+t.id]!==undefined?PP["D"+t.id]:p)+'"></div></div><div class="sub">'+T("أنجزت")+' '+t.done+' '+T("من")+' '+t.target+' '+esc(t.unit)+(t.dk===k?' (+'+t.dadd+' '+T("اليوم")+')':'')+'</div>'+(t.dk===k?'<div class="result" style="margin-top:8px">'+T("النسبة النهائية بعد إنجاز اليوم:")+' '+p+'%</div>':'')+'</div>';
   }).join(""):'<div class="sub" style="margin-top:8px">'+T("لا توجد مهام معلقة.")+'</div>');
   animBars(document.getElementById("dT"),"D",true);
 }
@@ -794,7 +817,7 @@ let dg=null;
 document.addEventListener("pointerdown",function(e){
   const h=e.target.closest&&e.target.closest(".drag");
   if(!h)return;
-  const row=h.closest(".chk")||h.closest(".task");
+  const row=h.closest(".chk")||h.closest(".task")||h.closest(".trow");
   if(!row)return;
   const rows=Array.from(row.parentElement.children).filter(c=>c.querySelector(".drag"));
   const gap=row.classList.contains("chk")?0:12;
@@ -830,10 +853,11 @@ function endDrag(){
   const orig=d.rows.map(c=>+c.querySelector(".drag").dataset.id);
   const ord=orig.slice();
   const mv=ord.splice(d.si,1)[0];ord.splice(d.ni,0,mv);
-  const pos=orig.map(id=>routines.findIndex(r=>r.id===id)).sort((a,b)=>a-b);
-  const objs=ord.map(id=>routines.find(r=>r.id===id));
-  pos.forEach((p,k)=>{routines[p]=objs[k]});
-  saveR();renderR();
+  const isT=d.h.dataset.kind==="T",arr=isT?tasks:routines;
+  const pos=orig.map(id=>arr.findIndex(r=>r.id===id)).sort((a,b)=>a-b);
+  const objs=ord.map(id=>arr.find(r=>r.id===id));
+  pos.forEach((p,k)=>{arr[p]=objs[k]});
+  if(isT){save();render();renderD()}else{saveR();renderR()}
 }
 document.addEventListener("pointerup",endDrag);
 document.addEventListener("pointercancel",endDrag);
@@ -978,7 +1002,7 @@ function syncBlock(){
   const icon=bad?ico("i:x","18px"):(st==="syn"?ico("i:repeat","18px"):ico("i:check","18px"));
   return '<div style="background:var(--accbg);border-radius:12px;padding:12px;margin-top:14px"><div style="display:flex;align-items:center;gap:10px;color:'+col+';font-weight:700"><span style="display:inline-flex">'+icon+'</span><span>'+T(msg)+'</span></div>'+tm+'<button class="ghost" style="width:100%;margin-top:10px" '+(st==="syn"?'disabled ':'')+'onclick="cloudSync()">'+T("مزامنة الآن")+'</button></div>';
 }
-Object.assign(EN,{"قال رسول الله صلى الله عليه وسلم":"The Messenger of Allah (peace be upon him) said","أحب الأعمال إلى الله أدومها وإن قل":"The most beloved deeds to Allah are the most constant, even if small","متفق عليه":"Agreed upon (Bukhari and Muslim)","تمت مزامنة البيانات":"Data synced","جارٍ المزامنة…":"Syncing…","تعذرت المزامنة":"Sync failed","المزامنة غير متاحة هنا":"Sync isn't available here","المزامنة غير متاحة الآن":"Sync isn't available right now","سيتم رفع بياناتك الآن":"Your data is being uploaded","المزامنة":"Sync","آخر مزامنة":"Last sync","مزامنة الآن":"Sync now","تتم مزامنة بياناتك تلقائيًا بعد الربط وتُحفظ على حسابك في Claude، فتظهر على أي جهاز تفتح منه البرنامج بنفس الحساب. الربط نفسه لا يسجّل دخولًا فعليًا بجوجل أو فيسبوك.":"After linking, your data syncs automatically and is saved to your Claude account, so it appears on any device where you open the app with the same account. Linking itself doesn't sign you in with Google or Facebook."});
+Object.assign(EN,{"قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ":"The Messenger of Allah (peace be upon him) said","أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ":"The most beloved deeds to Allah are the most constant, even if small","مُتَّفَقٌ عَلَيْهِ":"Agreed upon (Bukhari and Muslim)","تمت مزامنة البيانات":"Data synced","جارٍ المزامنة…":"Syncing…","تعذرت المزامنة":"Sync failed","المزامنة غير متاحة هنا":"Sync isn't available here","المزامنة غير متاحة الآن":"Sync isn't available right now","سيتم رفع بياناتك الآن":"Your data is being uploaded","المزامنة":"Sync","آخر مزامنة":"Last sync","مزامنة الآن":"Sync now","تتم مزامنة بياناتك تلقائيًا بعد الربط وتُحفظ على حسابك في Claude، فتظهر على أي جهاز تفتح منه البرنامج بنفس الحساب. الربط نفسه لا يسجّل دخولًا فعليًا بجوجل أو فيسبوك.":"After linking, your data syncs automatically and is saved to your Claude account, so it appears on any device where you open the app with the same account. Linking itself doesn't sign you in with Google or Facebook."});
 
 function linkListHtml(){
   const d=lang==="en"?-90:90;
@@ -1028,7 +1052,7 @@ try{const q=localStorage.getItem(PK);if(q)prof=JSON.parse(q)||prof}catch(e){}
 function avHtml(){const n=(prof.name||"").trim();return n?esc(Array.from(n)[0]):ico("i:user","26px")}
 function setName(v){prof.name=v;cloudPush();try{localStorage.setItem(PK,JSON.stringify(prof))}catch(e){}const a=document.getElementById("avN");if(a)a.innerHTML=avHtml()}
 function setThm(v){const h=document.documentElement;h.classList.add("tt");if(v==="auto")h.removeAttribute("data-theme");else h.setAttribute("data-theme",v);try{if(v==="auto")localStorage.removeItem("theme-v1");else localStorage.setItem("theme-v1",v)}catch(e){}drawThm();renderH();setTimeout(()=>h.classList.remove("tt"),450)}
-function askWipe(){const m=document.getElementById("modal");m.innerHTML='<div class="sheet"><b>'+T("هل تريد مسح جميع البيانات؟")+'</b><div class="sub" style="margin-top:4px">'+T("ستُمسح جميع المهام والروتينات ولا يمكن استرجاعها.")+'</div><div class="row" style="margin-top:12px"><button style="background:#d33" onclick="doWipe()">'+T("نعم، امسح")+'</button><button class="ghost" onclick="closeEdit()">'+T("إلغاء")+'</button></div></div>';m.classList.remove("hide")}
+function askWipe(){const m=document.getElementById("modal");m.innerHTML='<div class="sheet"><b>'+T("هل تريد مسح جميع البيانات؟")+'</b><div class="sub" style="margin-top:4px">'+T("ستُمسح جميع المهام والروتينات ولا يمكن استرجاعها.")+'</div><div class="row" style="margin-top:12px"><button style="background:#d33" onclick="doWipe()">'+T("نعم، امسح")+'</button><button class="ghost" onclick="closeEdit()">'+T("إلغاء")+'</button></div></div>';openM(m)}
 function doWipe(){tasks=[];routines=[];save();saveR();closeEdit();render();renderR();renderH()}
 const ONE=new Set(["Rakkas","Lalezar","Katibeh","Jomhuria","Vibes","Gulzar","Amiri Quran","Pacifico"]);
 const FG=[["خطوط عربية",["Cairo", "Tajawal", "Almarai", "Noto Naskh Arabic", "Noto Kufi Arabic", "Noto Sans Arabic", "IBM Plex Sans Arabic", "Amiri", "Amiri Quran", "Changa", "El Messiri", "Harmattan", "Lateef", "Markazi Text", "Mada", "Mirza", "Reem Kufi", "Scheherazade New", "Aref Ruqaa", "Rakkas", "Lalezar", "Katibeh", "Jomhuria", "Readex Pro", "Baloo Bhaijaan 2", "Lemonada", "Kufam", "Alexandria", "Zain", "Vazirmatn", "Noto Nastaliq Urdu", "Rubik", "Marhey", "Vibes", "Gulzar", "Playpen Sans Arabic"]],["خطوط لاتينية",["Inter", "Roboto", "Open Sans", "Lato", "Poppins", "Montserrat", "Nunito", "Source Sans 3", "Ubuntu", "Raleway", "Fira Sans", "Quicksand", "Work Sans", "DM Sans", "Noto Sans", "Comfortaa", "Merriweather", "Playfair Display", "Lora", "Noto Serif", "Oswald", "Caveat", "Pacifico"]]];
@@ -1077,7 +1101,7 @@ function renderH(){
   pH.innerHTML=
   '<div class="task"><div style="display:flex;align-items:center;gap:12px"><div id="avN" style="width:54px;height:54px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex:none">'+avHtml()+'</div><div style="flex:1;min-width:0">'+greetHtml()+'<div class="sub" style="margin-bottom:4px;overflow-wrap:anywhere">'+accLine()+'</div>'+((isLinked()&&CS.name)?'':'<input style="width:100%" placeholder="'+T("اسمك")+'" value="'+esc(prof.name)+'" oninput="setName(this.value)">')+'</div></div><div class="sub" style="margin-top:10px">'+tasks.length+' '+T("مهمة")+' • '+routines.length+' '+T("روتين")+' — '+T("بياناتك محفوظة على جهازك فقط.")+'</div></div>'+
   '<div class="task"><b>'+T("الإعدادات")+'</b>'+row("font","i:pen",T("الخط"),"")+row("theme","i:palette",T("المظهر"),"")+row("notif","i:bell",T("الإشعارات"),"")+row("link","i:link",T("ربط"),"")+row("lang","i:globe",T("اللغة"),lang==="en"?"English":"العربية")+'<div style="margin-top:14px"><button class="ghost" style="width:100%" onclick="tourReset()">'+T("إعادة الجولة التعريفية")+'</button></div><div style="margin-top:10px"><button class="ghost" style="width:100%;color:#d33" onclick="askWipe()">'+T("مسح جميع البيانات")+'</button></div></div>'+
-  '<div class="task" style="text-align:center"><div class="sub" style="margin-bottom:8px">'+T("قال رسول الله صلى الله عليه وسلم")+'</div><div style="font-size:19px;font-weight:700;line-height:1.7;color:var(--acc)">«'+T("أحب الأعمال إلى الله أدومها وإن قل")+'»</div><div class="sub" style="margin-top:10px">'+T("متفق عليه")+'</div></div>'+'<div class="task"><b>'+T("عن التطبيق")+'</b><div class="sub" style="margin-top:8px">'+T("إنجازاتي")+' — '+T("تطبيق بسيط لتنظيم المهام والروتين اليومي ومتابعة إنجازك.")+'</div><div class="sub" style="margin-top:4px">'+T("الإصدار")+' 1.0</div></div>';
+  '<div class="task" style="text-align:center"><div class="sub" style="margin-bottom:8px">'+T("قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ")+'</div><div style="font-size:19px;font-weight:700;line-height:1.7;color:var(--acc)">«'+T("أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ")+'»</div><div class="sub" style="margin-top:10px">'+T("مُتَّفَقٌ عَلَيْهِ")+'</div></div>'+'<div class="task"><b>'+T("عن التطبيق")+'</b><div class="sub" style="margin-top:8px">'+T("إنجازاتي")+' — '+T("تطبيق بسيط لتنظيم المهام والروتين اليومي ومتابعة إنجازك.")+'</div><div class="sub" style="margin-top:4px">'+T("الإصدار")+' 1.0</div></div>';
 }
 
 {const bar=document.createElement("div");bar.id="bar";
@@ -1120,7 +1144,7 @@ const TK="tour-v2",TA={"D": ["i:calendar", "تبويب اليوم", "يومك ك
 function tourSeen(){try{return JSON.parse(localStorage.getItem(TK)||"{}")||{}}catch(e){return {}}}
 function tourSave(o){try{localStorage.setItem(TK,JSON.stringify(o))}catch(e){}}
 let tourLive=false;try{if(localStorage.getItem(TK)===null){tourLive=true;tourSave({})}}catch(e){}
-function hintClose(){const el=document.getElementById("tour");if(el)el.remove()}
+function hintClose(){const el=document.getElementById("tour");if(el){el.style.animation="mFadeOut .22s ease forwards";setTimeout(()=>{if(el.parentNode)el.remove()},200)}else{}}
 function hintSkip(){const o=tourSeen();o.off=1;tourSave(o);hintClose()}
 function tourReset(){tourLive=true;tourSave({});hintTab(curTab)}
 function hintTab(n){
