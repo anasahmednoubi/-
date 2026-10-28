@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "UserBackup": {
+      "title": "User Backup",
+      "description": "User's synchronized tasks, routines, and profile",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the user" },
+        "email": { "type": "string", "description": "User Google email" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "tasks": { "type": "array", "description": "List of user tasks" },
+        "routines": { "type": "array", "description": "List of user routines" },
+        "prof": { "type": "object", "description": "User profile settings" },
+        "ts": { "type": "number", "description": "Timestamp of last update" }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/data/backup": {
+      "schema": "UserBackup",
+      "description": "Stores user backup data synced across devices"
+    }
+  }
+}

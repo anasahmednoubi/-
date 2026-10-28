@@ -11,6 +11,12 @@ import {
 import { t } from '../translations';
 import { Icon } from '../icons';
 import { playTone } from '../audio';
+import {
+  signInWithGoogle,
+  logOutFromGoogle,
+  signInWithFacebook,
+  logOutFromFacebook,
+} from '../firebase';
 
 interface MoreViewProps {
   tasksCount: number;
@@ -194,6 +200,10 @@ export const MoreView: React.FC<MoreViewProps> = ({
     accountLinks.f || ''
   );
   const [linkError, setLinkError] = useState('');
+  const [connectingFacebook, setConnectingFacebook] = useState(false);
+  const [facebookLinkError, setFacebookLinkError] = useState('');
+  const [showFbGuide, setShowFbGuide] = useState(false);
+  const [showFbManual, setShowFbManual] = useState(false);
 
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -822,7 +832,10 @@ export const MoreView: React.FC<MoreViewProps> = ({
                   type="button"
                   className="ghost"
                   style={{ width: '100%', marginTop: '14px', color: '#d33' }}
-                  onClick={() => {
+                  onClick={async () => {
+                    try {
+                      await logOutFromGoogle();
+                    } catch (e) {}
                     const copy = { ...accountLinks };
                     delete copy.g;
                     onUpdateLinks(copy);
@@ -838,7 +851,7 @@ export const MoreView: React.FC<MoreViewProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    marginBottom: '12px',
+                    marginBottom: '8px',
                   }}
                 >
                   <span
@@ -859,43 +872,92 @@ export const MoreView: React.FC<MoreViewProps> = ({
                   </span>
                   <b>{t('ربط الحساب بجوجل', lang)}</b>
                 </div>
-                <input
-                  type="email"
-                  dir="auto"
-                  style={{ width: '100%' }}
-                  placeholder={t('بريدك على جوجل', lang)}
-                  value={googleEmailInput}
-                  onChange={(e) => setGoogleEmailInput(e.target.value)}
-                />
+                <div className="sub" style={{ marginBottom: '14px' }}>
+                  {t(
+                    'سجّل الدخول بحساب جوجل لحفظ مهامك ومزامنتها سحابياً بشكل فعلي والوصول إليها من أي جهاز.',
+                    lang
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="g-btn"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    background: 'var(--card)',
+                    color: 'var(--text)',
+                    border: '1.5px solid var(--line)',
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                    fontWeight: 600,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                  }}
+                  onClick={async () => {
+                    setLinkError('');
+                    try {
+                      const user = await signInWithGoogle();
+                      if (user && user.email) {
+                        onUpdateLinks({ ...accountLinks, g: user.email });
+                        if (
+                          user.displayName &&
+                          (!profile.name || profile.name === 'اسمك')
+                        ) {
+                          onUpdateProfile({ ...profile, name: user.displayName });
+                        }
+                      }
+                    } catch (err: any) {
+                      if (
+                        err.code !== 'auth/popup-closed-by-user' &&
+                        err.code !== 'auth/cancelled-popup-request'
+                      ) {
+                        setLinkError(
+                          err.message || t('تعذر الاتصال بحساب جوجل', lang)
+                        );
+                      }
+                    }
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    style={{ flex: 'none' }}
+                  >
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.15C3.25 21.3 7.34 24 12 24Z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.27C.46 8.2 0 10.04 0 12s.46 3.8 1.27 5.42l4.01-3.15Z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.25 2.7 1.27 6.58l4.01 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"
+                    />
+                  </svg>
+                  <span>{t('تسجيل الدخول والربط بحساب جوجل', lang)}</span>
+                </button>
                 {linkError && (
                   <div
-                    style={{ color: '#d33', fontSize: '13px', marginTop: '8px' }}
+                    style={{ color: '#d33', fontSize: '13px', marginTop: '10px' }}
                   >
                     {linkError}
                   </div>
                 )}
-                <button
-                  type="button"
-                  style={{ width: '100%', marginTop: '12px' }}
-                  onClick={() => {
-                    if (!/^\S+@\S+\.\S+$/.test(googleEmailInput.trim())) {
-                      setLinkError(t('اكتب بريد جوجل صحيح.', lang));
-                      return;
-                    }
-                    setLinkError('');
-                    onUpdateLinks({
-                      ...accountLinks,
-                      g: googleEmailInput.trim(),
-                    });
-                  }}
-                >
-                  {t('ربط الحساب بجوجل', lang)}
-                </button>
               </>
             )}
             <div className="sub" style={{ marginTop: '12px' }}>
               {t(
-                'الربط محفوظ على جهازك فقط، ولا يتم تسجيل دخول فعلي أو مزامنة بيانات.',
+                'تتم مزامنة مهامك وروتينك سحابياً وتُحفظ بأمان في حسابك السحابي لتصل إليها من أي جهاز.',
                 lang
               )}
             </div>
@@ -939,9 +1001,10 @@ export const MoreView: React.FC<MoreViewProps> = ({
                         color: '#16a34a',
                         fontSize: '13px',
                         marginTop: '2px',
+                        fontWeight: 600,
                       }}
                     >
-                      {t('مرتبط', lang)}
+                      {t('مرتبط بحساب فيسبوك', lang)}
                     </div>
                   </div>
                 </div>
@@ -949,10 +1012,14 @@ export const MoreView: React.FC<MoreViewProps> = ({
                   type="button"
                   className="ghost"
                   style={{ width: '100%', marginTop: '14px', color: '#d33' }}
-                  onClick={() => {
+                  onClick={async () => {
+                    try {
+                      await logOutFromFacebook();
+                    } catch (e) {}
                     const copy = { ...accountLinks };
                     delete copy.f;
                     onUpdateLinks(copy);
+                    setFacebookLinkError('');
                   }}
                 >
                   {t('إلغاء الربط', lang)}
@@ -965,7 +1032,7 @@ export const MoreView: React.FC<MoreViewProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    marginBottom: '12px',
+                    marginBottom: '8px',
                   }}
                 >
                   <span
@@ -986,32 +1053,187 @@ export const MoreView: React.FC<MoreViewProps> = ({
                   </span>
                   <b>{t('ربط الحساب بفيسبوك', lang)}</b>
                 </div>
-                <input
-                  type="text"
-                  dir="auto"
-                  style={{ width: '100%' }}
-                  placeholder={t('اسمك على فيسبوك', lang)}
-                  value={facebookNameInput}
-                  onChange={(e) => setFacebookNameInput(e.target.value)}
-                />
+
+                <div className="sub" style={{ marginBottom: '14px' }}>
+                  {t(
+                    'سجّل الدخول بحساب فيسبوك لحفظ مهامك ومزامنتها سحابياً بشكل فعلي والوصول إليها من أي جهاز.',
+                    lang
+                  )}
+                </div>
+
                 <button
                   type="button"
-                  style={{ width: '100%', marginTop: '12px' }}
-                  onClick={() => {
-                    if (!facebookNameInput.trim()) return;
-                    onUpdateLinks({
-                      ...accountLinks,
-                      f: facebookNameInput.trim(),
-                    });
+                  disabled={connectingFacebook}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    background: '#1877f2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                    fontWeight: 600,
+                    fontSize: '15px',
+                    cursor: connectingFacebook ? 'default' : 'pointer',
+                    opacity: connectingFacebook ? 0.75 : 1,
+                    boxShadow: '0 2px 8px rgba(24,119,242,0.3)',
+                    transition: 'background-color 0.2s, transform 0.15s',
+                  }}
+                  onClick={async () => {
+                    setFacebookLinkError('');
+                    setConnectingFacebook(true);
+                    try {
+                      const user = await signInWithFacebook();
+                      if (user) {
+                        const fbName =
+                          user.displayName ||
+                          (user.email ? user.email.split('@')[0] : 'Facebook User');
+                        onUpdateLinks({ ...accountLinks, f: fbName });
+                        if (
+                          user.displayName &&
+                          (!profile.name || profile.name === 'اسمك')
+                        ) {
+                          onUpdateProfile({ ...profile, name: user.displayName });
+                        }
+                      }
+                    } catch (err: any) {
+                      console.error('Facebook sign in error:', err);
+                      if (
+                        err.code === 'auth/popup-closed-by-user' ||
+                        err.code === 'auth/cancelled-popup-request'
+                      ) {
+                        // User canceled popup
+                      } else if (
+                        err.code === 'auth/operation-not-allowed' ||
+                        err.code === 'auth/configuration-not-found' ||
+                        (err.message && err.message.includes('configuration'))
+                      ) {
+                        setFacebookLinkError(
+                          t(
+                            'يتطلب تفعيل موفر فيسبوك في Firebase Console أولاً بإدخال App ID و App Secret.',
+                            lang
+                          )
+                        );
+                        setShowFbGuide(true);
+                      } else {
+                        setFacebookLinkError(
+                          err.message || t('تعذر الاتصال بحساب فيسبوك', lang)
+                        );
+                      }
+                    } finally {
+                      setConnectingFacebook(false);
+                    }
                   }}
                 >
-                  {t('ربط الحساب بفيسبوك', lang)}
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style={{ flex: 'none' }}
+                  >
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                  <span>
+                    {connectingFacebook
+                      ? t('جارٍ الاتصال بفيسبوك…', lang)
+                      : t('تسجيل الدخول والربط بحساب فيسبوك', lang)}
+                  </span>
                 </button>
+
+                {facebookLinkError && (
+                  <div
+                    style={{
+                      color: '#d33',
+                      fontSize: '13px',
+                      marginTop: '10px',
+                      lineHeight: '1.4',
+                    }}
+                  >
+                    {facebookLinkError}
+                  </div>
+                )}
+
+                {showFbGuide && (
+                  <div
+                    style={{
+                      marginTop: '12px',
+                      padding: '12px',
+                      borderRadius: '10px',
+                      background: 'var(--accbg)',
+                      fontSize: '13px',
+                      lineHeight: '1.6',
+                    }}
+                  >
+                    <b style={{ display: 'block', marginBottom: '6px' }}>
+                      {t('خطوات تفعيل فيسبوك في Firebase', lang)}:
+                    </b>
+                    <ol style={{ margin: '0', paddingInlineStart: '20px' }}>
+                      <li>
+                        {lang === 'en'
+                          ? 'Go to Firebase Console -> Authentication -> Sign-in method.'
+                          : 'افتح Firebase Console -> Authentication -> Sign-in method.'}
+                      </li>
+                      <li>
+                        {lang === 'en'
+                          ? 'Add "Facebook" as a provider and enable it.'
+                          : 'اختر إضافة موفر جديد "Facebook" واضغط تفعيل.'}
+                      </li>
+                      <li>
+                        {lang === 'en'
+                          ? 'Create a Meta App on developers.facebook.com and paste the App ID & App Secret.'
+                          : 'أنشئ تطبيقاً في developers.facebook.com وانسخ App ID و App Secret.'}
+                      </li>
+                    </ol>
+                  </div>
+                )}
+
+                <div style={{ marginTop: '14px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
+                  <button
+                    type="button"
+                    className="ghost"
+                    style={{ width: '100%', fontSize: '13px', padding: '8px' }}
+                    onClick={() => setShowFbManual(!showFbManual)}
+                  >
+                    {t('ربط بالاسم أو الرابط يدوياً', lang)}
+                  </button>
+
+                  {showFbManual && (
+                    <div style={{ marginTop: '10px' }}>
+                      <input
+                        type="text"
+                        dir="auto"
+                        style={{ width: '100%' }}
+                        placeholder={t('اسمك على فيسبوك', lang)}
+                        value={facebookNameInput}
+                        onChange={(e) => setFacebookNameInput(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        style={{ width: '100%', marginTop: '10px' }}
+                        onClick={() => {
+                          if (!facebookNameInput.trim()) return;
+                          onUpdateLinks({
+                            ...accountLinks,
+                            f: facebookNameInput.trim(),
+                          });
+                          setFacebookLinkError('');
+                        }}
+                      >
+                        {t('حفظ', lang)}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             )}
+
             <div className="sub" style={{ marginTop: '12px' }}>
               {t(
-                'الربط محفوظ على جهازك فقط، ولا يتم تسجيل دخول فعلي أو مزامنة بيانات.',
+                'تتم مزامنة مهامك وروتينك سحابياً وتُحفظ بأمان في حسابك السحابي لتصل إليها من أي جهاز.',
                 lang
               )}
             </div>

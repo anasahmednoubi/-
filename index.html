@@ -211,6 +211,9 @@ html[dir=rtl] .sfw{--sx:-32px}html[dir=rtl] .sbk{--sx:32px}
 html.tbtop #bar{position:sticky;top:env(safe-area-inset-top,0px);bottom:auto;left:auto;right:auto;max-width:none;margin:0 -16px;padding:8px 16px 10px;background:linear-gradient(var(--bg) 82%,transparent)}
 html.tbtop main{padding-top:20px;padding-bottom:40px;overflow-x:clip}
 html.tbtop #tour{bottom:auto!important;top:calc(150px + env(safe-area-inset-top,0px))!important}
+.g-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--card);color:var(--text);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:background-color .2s,box-shadow .2s,transform .15s}
+.g-btn:hover{background:var(--track);box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.g-btn:active{transform:scale(.98)}
 </style>
 </head>
 <body>
@@ -251,6 +254,78 @@ html.tbtop #tour{bottom:auto!important;top:calc(150px + env(safe-area-inset-top,
 </div>
 </main>
 <div id="modal" class="hide" onclick="if(event.target===this)closeEdit()"></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, signInWithPopup, linkWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, getDocFromServer } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  projectId: "airy-hydra-gsmzh",
+  appId: "1:396092710552:web:a6a65fdb7db7bae3c8baed",
+  apiKey: "AIzaSyC67eKf55sa003mToOQcbxl7ZrFBbWqPno",
+  authDomain: "airy-hydra-gsmzh.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-072bb3e9-36a8-48f3-bbc6-6c1cdb1d094d",
+  storageBucket: "airy-hydra-gsmzh.firebasestorage.app",
+  messagingSenderId: "396092710552",
+  measurementId: ""
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+window.FB = {
+  app,
+  auth,
+  db,
+  doc,
+  getDoc,
+  setDoc,
+  async testConnection() {
+    try {
+      await getDocFromServer(doc(db, "test", "connection"));
+    } catch (e) {
+      if (e && e.message && e.message.includes("the client is offline")) {
+        console.warn("Firestore connection check:", e);
+      }
+    }
+  },
+  async signInGoogle() {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    const res = await signInWithPopup(auth, provider);
+    return res.user;
+  },
+  async signInFacebook() {
+    const provider = new FacebookAuthProvider();
+    provider.addScope("public_profile");
+    provider.addScope("email");
+    if (auth.currentUser) {
+      try {
+        const res = await linkWithPopup(auth.currentUser, provider);
+        return res.user;
+      } catch (linkErr) {
+        if (linkErr && linkErr.code === "auth/credential-already-in-use") {
+          const res = await signInWithPopup(auth, provider);
+          return res.user;
+        }
+        throw linkErr;
+      }
+    } else {
+      const res = await signInWithPopup(auth, provider);
+      return res.user;
+    }
+  },
+  async signOut() {
+    await signOut(auth);
+  },
+  onAuth(cb) {
+    return onAuthStateChanged(auth, cb);
+  }
+};
+
+window.dispatchEvent(new CustomEvent("fb-ready"));
+</script>
 <script>
 const LK="lang-v1";let lang="ar";try{if(localStorage.getItem(LK)==="en")lang="en"}catch(e){}
 const EN={"إنجازاتي":"My Achievements","لون البرنامج":"App color","المنجز":"Done","الإجمالي":"Total","ربط":"Link","أهلاً":"Hello","ربط الحساب بجوجل":"Link Google account","ربط الحساب بفيسبوك":"Link Facebook account","مرتبط":"Linked","غير مرتبط":"Not linked","إلغاء الربط":"Unlink","تم ربط الحساب":"Account linked","اكتب بريد جوجل صحيح.":"Enter a valid Google email.","بريدك على جوجل":"Your Google email","اسمك على فيسبوك":"Your Facebook name","الربط محفوظ على جهازك فقط، ولا يتم تسجيل دخول فعلي أو مزامنة بيانات.":"Linking is saved on this device only. No real sign-in or data sync happens.","إظهار الإشعارات على الجهاز":"Show notifications on this device","تم تفعيل الإشعارات":"Notifications enabled","إشعارات الجهاز غير متاحة هنا، لذلك ستظهر الإشعارات داخل البرنامج.":"Device notifications aren't available here, so notifications will appear inside the app.","تعذر تفعيل الإشعارات. اسمح بها من إعدادات المتصفح أو الجهاز.":"Couldn't enable notifications. Allow them in your browser or device settings.","هذا المتصفح لا يدعم الإشعارات.":"This browser doesn't support notifications.","أحسنت! تم تسجيل تقدمك في:":"Well done! Progress saved for:","أحسنت! أتممت الروتين:":"Well done! Routine completed:","الإشعارات":"Notifications","صوت نغمة الإشعارات":"Notification sound","نغمة إتمام المهام":"Task completion tone","نغمة إتمام الروتين":"Routine completion tone","رنين":"Chime","جرس":"Bell","فقاعة":"Pop","لحن":"Melody","بدون":"None","تجربة الصوت":"Play sound","بنفسجي":"Purple","أزرق":"Blue","تركواز":"Teal","أخضر":"Green","برتقالي":"Orange","أحمر":"Red","وردي":"Pink","رمادي":"Gray","إحصائيات":"Stats","مهام":"Tasks","روتين":"routines","اليوم":"Today","الأسبوع":"Week","الشهر":"Month","إضافة":"Add","إضافة روتين":"Add routine","إضافة مهمة":"Add task",
@@ -936,73 +1011,248 @@ function greetHtml(){
   return '<div style="font-size:17px;font-weight:700;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+T("أهلاً")+(lang==="en"?", ":"، ")+'<span style="color:var(--acc)" dir="auto">'+esc(n)+'</span></div>';
 }
 function saveLnk(){try{localStorage.setItem("link-v1",JSON.stringify(LNK))}catch(e){}}
-function doLink(p){
-  const v=document.getElementById("lk"+p).value.trim();if(!v)return;
-  if(p==="g"&&!/^\S+@\S+\.\S+$/.test(v)){LERR=T("اكتب بريد جوجل صحيح.");renderH();return}
-  LERR="";LNK[p]=v;LNK.last=p;saveLnk();renderH();inApp(T("ربط"),T(LP[p].t));cloudSync().then(ok=>{inApp(T("المزامنة"),T(ok?"تمت مزامنة البيانات":"المزامنة غير متاحة الآن"))});
+async function linkGoogle(){
+  LERR="";
+  const btn=document.getElementById("gLinkBtn");
+  if(btn){btn.disabled=true;btn.style.opacity="0.7";btn.innerHTML=ico("i:repeat","18px")+' <span>'+T("جارٍ الاتصال بجوجل…")+'</span>'}
+  try{
+    if(!window.FB||!window.FB.signInGoogle){
+      throw new Error(T("خدمة الربط غير جاهزة بعد، يُرجى المحاولة بعد لحظات."));
+    }
+    const user=await window.FB.signInGoogle();
+    if(!user||!user.email) throw new Error(T("لم يتم تسجيل الدخول."));
+    LNK.g=user.email;
+    LNK.last="g";
+    CS.id=user.uid;
+    CS.name=user.displayName||user.email.split("@")[0];
+    CS.photo=user.photoURL||"";
+    if(user.displayName&&(!prof.name||prof.name==="اسمك"||prof.name===user.email)){
+      prof.name=user.displayName;
+      try{localStorage.setItem(PK,JSON.stringify(prof))}catch(e){}
+    }
+    saveLnk();
+    inApp(T("ربط"),T("تم ربط حساب جوجل بنجاح"));
+    renderH();
+    await cloudSync();
+    redrawAll();
+  }catch(err){
+    console.error("Link Google error:",err);
+    if(err.code!=="auth/popup-closed-by-user"&&err.code!=="auth/cancelled-popup-request"){
+      LERR=err.message||T("تعذر الاتصال بحساب جوجل");
+    }
+    renderH();
+  }
 }
-function unLink(p){delete LNK[p];LERR="";saveLnk();renderH()}
-/* ===== cloud sync (حساب Claude) ===== */
-const CS={db:null,id:null,st:"off",t:0,ready:false,name:""};
+let FB_GUIDE_OPEN=false,FB_MANUAL_OPEN=false;
+async function linkFacebook(){
+  LERR="";
+  const btn=document.getElementById("fLinkBtn");
+  if(btn){btn.disabled=true;btn.style.opacity="0.7";btn.innerHTML=ico("i:repeat","18px")+' <span>'+T("جارٍ الاتصال بفيسبوك…")+'</span>'}
+  try{
+    if(!window.FB||!window.FB.signInFacebook){
+      throw new Error(T("خدمة الربط غير جاهزة بعد، يُرجى المحاولة بعد لحظات."));
+    }
+    const user=await window.FB.signInFacebook();
+    if(!user) throw new Error(T("لم يتم تسجيل الدخول."));
+    const fbName=user.displayName||(user.email?user.email.split("@")[0]:"مستخدم فيسبوك");
+    LNK.f=fbName;
+    LNK.fEmail=user.email||"";
+    LNK.fPhoto=user.photoURL||"";
+    LNK.last="f";
+    if(!CS.id) CS.id=user.uid;
+    if(!CS.name||CS.name==="اسمك") CS.name=fbName;
+    if(!CS.photo&&user.photoURL) CS.photo=user.photoURL;
+    if(fbName&&(!prof.name||prof.name==="اسمك")){
+      prof.name=fbName;
+      try{localStorage.setItem(PK,JSON.stringify(prof))}catch(e){}
+    }
+    saveLnk();
+    inApp(T("ربط"),T("تم ربط حساب فيسبوك بنجاح"));
+    renderH();
+    await cloudSync();
+    redrawAll();
+  }catch(err){
+    console.error("Link Facebook error:",err);
+    if(err.code!=="auth/popup-closed-by-user"&&err.code!=="auth/cancelled-popup-request"){
+      if(err.code==="auth/operation-not-allowed"||err.code==="auth/configuration-not-found"||(err.message&&err.message.includes("configuration"))){
+        LERR=T("يتطلب تفعيل موفر فيسبوك في Firebase Console أولاً بإدخال App ID و App Secret.");
+        FB_GUIDE_OPEN=true;
+      }else{
+        LERR=err.message||T("تعذر الاتصال بحساب فيسبوك");
+      }
+    }
+    renderH();
+  }
+}
+function doLink(p){
+  if(p==="g"){linkGoogle();return}
+  if(p==="f"){linkFacebook();return}
+  const v=document.getElementById("lk"+p).value.trim();if(!v)return;
+  LERR="";LNK[p]=v;LNK.last=p;saveLnk();renderH();inApp(T("ربط"),T(LP[p].t));
+}
+function doManualLinkF(){
+  const inp=document.getElementById("lkf_manual");
+  if(!inp)return;
+  const v=inp.value.trim();if(!v)return;
+  LERR="";LNK.f=v;LNK.last="f";
+  if(!CS.name) CS.name=v;
+  saveLnk();renderH();inApp(T("ربط"),T("تم ربط حساب فيسبوك"));
+}
+async function unLink(p){
+  if(p==="g"&&window.FB&&window.FB.signOut&&!LNK.f){
+    try{await window.FB.signOut()}catch(e){}
+  }
+  if(p==="f"&&window.FB&&window.FB.signOut&&!LNK.g){
+    try{await window.FB.signOut()}catch(e){}
+  }
+  delete LNK[p];
+  if(p==="f"){
+    delete LNK.fEmail;
+    delete LNK.fPhoto;
+  }
+  if(p==="g"&&!LNK.f){CS.id=null;CS.name="";CS.photo=""}
+  else if(p==="f"&&!LNK.g){CS.id=null;CS.name="";CS.photo=""}
+  LERR="";
+  saveLnk();
+  inApp(T("ربط"),T("تم إلغاء ربط الحساب"));
+  renderH();
+  redrawAll();
+}
+/* ===== cloud sync (Firebase Firestore) ===== */
+const CS={id:null,st:"off",t:0,ready:false,name:"",photo:""};
 let LTS=0;try{LTS=+localStorage.getItem("sync-ts-v1")||0}catch(e){}
 function touchTs(){LTS=Date.now();try{localStorage.setItem("sync-ts-v1",String(LTS))}catch(e){}}
 function isLinked(){return !!(LNK.g||LNK.f)}
-function cloudRef(){return CS.db.collection("data/users/"+CS.id).doc("backup")}
 function mergeById(a,b){const m=new Set((a||[]).map(x=>x&&x.id));return (a||[]).concat((b||[]).filter(x=>x&&!m.has(x.id)))}
 function redrawAll(){["render","renderR","renderD","renderS","renderH"].forEach(n=>{try{if(typeof window[n]==="function")window[n]()}catch(e){}})}
 function refreshLink(){try{if(hSub==="linkG"||hSub==="linkF")renderH()}catch(e){}}
-async function cloudInit(){
-  try{
-    if(window.claude&&claude.use){
-      const db=await claude.use("db"),us=await claude.use("user");
-      if(db&&us){const id=await us.id();if(id){CS.db=db;CS.id=id}}
-      if(us){try{const me=await us.me();if(me&&me.name)CS.name=String(me.name)}catch(e){}}
-    }
-  }catch(e){}
-  CS.ready=true;if(CS.name)redrawAll();
-  if(CS.db&&isLinked())cloudSync();else refreshLink();
+function cloudInit(){
+  function setupFB(){
+    if(!window.FB)return;
+    window.FB.testConnection();
+    window.FB.onAuth(async user=>{
+      if(user){
+        LNK.g=user.email;
+        CS.id=user.uid;
+        CS.name=user.displayName||user.email.split("@")[0];
+        CS.photo=user.photoURL||"";
+        CS.ready=true;
+        if(user.displayName&&(!prof.name||prof.name==="اسمك")){
+          prof.name=user.displayName;
+          try{localStorage.setItem(PK,JSON.stringify(prof))}catch(e){}
+        }
+        saveLnk();
+        redrawAll();
+        await cloudSync();
+      }else{
+        if(LNK.g&&!user){
+          delete LNK.g;
+          CS.id=null;
+          CS.name="";
+          CS.photo="";
+          saveLnk();
+          redrawAll();
+        }
+        CS.ready=true;
+        refreshLink();
+      }
+    });
+  }
+  if(window.FB)setupFB();
+  else window.addEventListener("fb-ready",setupFB,{once:true});
 }
 async function cloudSync(){
-  if(!CS.db){CS.st="na";refreshLink();return false}
+  if(!window.FB||!window.FB.db||!CS.id){CS.st="na";refreshLink();return false}
   CS.st="syn";refreshLink();
   try{
-    const ref=cloudRef(),snap=await ref.get(),d=snap.exists?snap.data():null;
+    const ref=window.FB.doc(window.FB.db,"users",CS.id,"data","backup");
+    const snap=await window.FB.getDoc(ref);
+    const d=snap.exists()?snap.data():null;
     const hasLocal=tasks.length||routines.length;
     if(d&&(d.tasks||d.routines)&&d.ts>LTS){
       if(LTS===0&&hasLocal){tasks=mergeById(tasks,d.tasks);routines=mergeById(routines,d.routines)}
       else{tasks=d.tasks||[];routines=d.routines||[]}
       if(d.prof&&(!prof||!prof.name))prof=d.prof;
       try{localStorage.setItem(KEY,JSON.stringify(tasks));localStorage.setItem(RK,JSON.stringify(routines));localStorage.setItem(PK,JSON.stringify(prof))}catch(e){}
-      if(LTS===0&&hasLocal){touchTs();await ref.set({tasks:tasks,routines:routines,prof:prof,ts:LTS})}
-      else{LTS=d.ts;try{localStorage.setItem("sync-ts-v1",String(LTS))}catch(e){}}
+      if(LTS===0&&hasLocal){
+        touchTs();
+        await window.FB.setDoc(ref,{userId:CS.id,email:LNK.g||"",displayName:CS.name||"",tasks:tasks,routines:routines,prof:prof,ts:LTS});
+      }else{
+        LTS=d.ts;
+        try{localStorage.setItem("sync-ts-v1",String(LTS))}catch(e){}
+      }
       redrawAll();
     }else{
       if(!LTS)touchTs();
-      await ref.set({tasks:tasks,routines:routines,prof:prof,ts:LTS});
+      await window.FB.setDoc(ref,{userId:CS.id,email:LNK.g||"",displayName:CS.name||"",tasks:tasks,routines:routines,prof:prof,ts:LTS});
     }
     CS.st="ok";CS.t=Date.now();
-  }catch(e){CS.st="err"}
+  }catch(e){
+    console.error("cloudSync error",e);
+    CS.st="err";
+  }
   refreshLink();return CS.st==="ok";
 }
 let cpT=null;
 function cloudPush(){
-  touchTs();if(!CS.db||!isLinked())return;
+  touchTs();if(!window.FB||!window.FB.db||!CS.id||!isLinked())return;
   clearTimeout(cpT);
   cpT=setTimeout(async()=>{
-    try{await cloudRef().set({tasks:tasks,routines:routines,prof:prof,ts:LTS});CS.st="ok";CS.t=Date.now()}catch(e){CS.st="err"}
+    try{
+      const ref=window.FB.doc(window.FB.db,"users",CS.id,"data","backup");
+      await window.FB.setDoc(ref,{userId:CS.id,email:LNK.g||"",displayName:CS.name||"",tasks:tasks,routines:routines,prof:prof,ts:LTS});
+      CS.st="ok";CS.t=Date.now();
+    }catch(e){CS.st="err"}
     refreshLink();
   },1200);
 }
 function syncBlock(){
-  const st=!CS.ready?"syn":(!CS.db?"na":CS.st);
+  const st=!CS.ready?"syn":(!CS.id?"na":CS.st);
   const ok=st==="ok"||st==="off",bad=st==="err"||st==="na";
-  const msg={ok:"تمت مزامنة البيانات",off:"سيتم رفع بياناتك الآن",syn:"جارٍ المزامنة…",err:"تعذرت المزامنة",na:"المزامنة غير متاحة هنا"}[st];
+  const msg={ok:"تمت مزامنة البيانات سحابياً",off:"سيتم رفع بياناتك سحابياً الآن",syn:"جارٍ المزامنة…",err:"تعذرت المزامنة",na:"المزامنة غير متاحة هنا"}[st];
   const col=bad?"#d33":(st==="syn"?"var(--mute)":"#16a34a");
   const tm=(st==="ok"&&CS.t)?'<div class="sub" style="margin-top:2px">'+T("آخر مزامنة")+' '+new Date(CS.t).toLocaleTimeString(lang==="en"?"en":"ar-EG",{hour:"2-digit",minute:"2-digit"})+'</div>':"";
   const icon=bad?ico("i:x","18px"):(st==="syn"?ico("i:repeat","18px"):ico("i:check","18px"));
   return '<div style="background:var(--accbg);border-radius:12px;padding:12px;margin-top:14px"><div style="display:flex;align-items:center;gap:10px;color:'+col+';font-weight:700"><span style="display:inline-flex">'+icon+'</span><span>'+T(msg)+'</span></div>'+tm+'<button class="ghost" style="width:100%;margin-top:10px" '+(st==="syn"?'disabled ':'')+'onclick="cloudSync()">'+T("مزامنة الآن")+'</button></div>';
 }
-Object.assign(EN,{"قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ":"The Messenger of Allah (peace be upon him) said","أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ":"The most beloved deeds to Allah are the most constant, even if small","مُتَّفَقٌ عَلَيْهِ":"Agreed upon (Bukhari and Muslim)","تمت مزامنة البيانات":"Data synced","جارٍ المزامنة…":"Syncing…","تعذرت المزامنة":"Sync failed","المزامنة غير متاحة هنا":"Sync isn't available here","المزامنة غير متاحة الآن":"Sync isn't available right now","سيتم رفع بياناتك الآن":"Your data is being uploaded","المزامنة":"Sync","آخر مزامنة":"Last sync","مزامنة الآن":"Sync now","تتم مزامنة بياناتك تلقائيًا بعد الربط وتُحفظ على حسابك في Claude، فتظهر على أي جهاز تفتح منه البرنامج بنفس الحساب. الربط نفسه لا يسجّل دخولًا فعليًا بجوجل أو فيسبوك.":"After linking, your data syncs automatically and is saved to your Claude account, so it appears on any device where you open the app with the same account. Linking itself doesn't sign you in with Google or Facebook."});
+Object.assign(EN,{
+  "تسجيل الدخول والربط بحساب جوجل":"Sign in & link with Google",
+  "مرتبط بحساب جوجل":"Linked with Google",
+  "تم ربط حساب جوجل بنجاح":"Google account linked successfully",
+  "تسجيل الدخول والربط بحساب فيسبوك":"Sign in & link with Facebook",
+  "مرتبط بحساب فيسبوك":"Linked with Facebook",
+  "تم ربط حساب فيسبوك بنجاح":"Facebook account linked successfully",
+  "تم إلغاء ربط الحساب":"Account unlinked",
+  "جارٍ الاتصال بجوجل…":"Connecting to Google…",
+  "جارٍ الاتصال بفيسبوك…":"Connecting to Facebook…",
+  "سجّل الدخول بحساب جوجل لحفظ مهامك ومزامنتها سحابياً بشكل فعلي والوصول إليها من أي جهاز.":"Sign in with your Google account to save your tasks, sync them in the cloud, and access them from any device.",
+  "سجّل الدخول بحساب فيسبوك لحفظ مهامك ومزامنتها سحابياً بشكل فعلي والوصول إليها من أي جهاز.":"Sign in with your Facebook account to save your tasks, sync them in the cloud, and access them from any device.",
+  "تتم مزامنة مهامك وروتينك سحابياً وتُحفظ بأمان في حسابك السحابي لتصل إليها من أي جهاز.":"Your tasks and routines are automatically synced to your cloud account so you can access them from any device.",
+  "خدمة الربط غير جاهزة بعد، يُرجى المحاولة بعد لحظات.":"Connection service not ready yet, please try again in a moment.",
+  "تعذر الاتصال بحساب جوجل":"Failed to connect to Google account",
+  "تعذر الاتصال بحساب فيسبوك":"Failed to connect to Facebook account",
+  "يتطلب تفعيل موفر فيسبوك في Firebase Console أولاً بإدخال App ID و App Secret.":"Enabling Facebook in Firebase Console requires an App ID and App Secret from Meta for Developers.",
+  "خطوات تفعيل فيسبوك في Firebase":"How to enable Facebook in Firebase",
+  "ربط بالاسم أو الرابط يدوياً":"Link with name or profile manually",
+  "افتح Firebase Console -> Authentication -> Sign-in method.":"Go to Firebase Console -> Authentication -> Sign-in method.",
+  "اختر إضافة موفر جديد Facebook واضغط تفعيل.":"Add Facebook as a new provider and enable it.",
+  "أنشئ تطبيقاً في developers.facebook.com وانسخ App ID و App Secret.":"Create an app on developers.facebook.com and paste the App ID & App Secret.",
+  "لم يتم تسجيل الدخول.":"Sign-in was not completed.",
+  "الربط محفوظ على جهازك لتخصيص الاسم والمظهر.":"Linking is saved on this device to customize your name and theme.",
+  "تمت مزامنة البيانات سحابياً":"Data synced to cloud",
+  "سيتم رفع بياناتك سحابياً الآن":"Uploading data to cloud",
+  "قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ":"The Messenger of Allah (peace be upon him) said",
+  "أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ":"The most beloved deeds to Allah are the most constant, even if small",
+  "مُتَّفَقٌ عَلَيْهِ":"Agreed upon (Bukhari and Muslim)",
+  "تمت مزامنة البيانات":"Data synced",
+  "جارٍ المزامنة…":"Syncing…",
+  "تعذرت المزامنة":"Sync failed",
+  "المزامنة غير متاحة هنا":"Sync isn't available here",
+  "المزامنة غير متاحة الآن":"Sync isn't available right now",
+  "المزامنة":"Sync",
+  "آخر مزامنة":"Last sync",
+  "مزامنة الآن":"Sync now"
+});
 
 function linkListHtml(){
   const d=lang==="en"?-90:90;
@@ -1010,9 +1260,55 @@ function linkListHtml(){
 }
 function linkPageHtml(p){
   const x=LP[p],v=LNK[p];
-  const note='<div class="sub" style="margin-top:12px">'+T("تتم مزامنة بياناتك تلقائيًا بعد الربط وتُحفظ على حسابك في Claude، فتظهر على أي جهاز تفتح منه البرنامج بنفس الحساب. الربط نفسه لا يسجّل دخولًا فعليًا بجوجل أو فيسبوك.")+'</div>';
-  if(v)return '<div class="task"><div style="display:flex;align-items:center;gap:12px">'+lnkBadge(p,44)+'<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis" dir="auto">'+esc(v)+'</div><div style="color:#16a34a;font-size:13px;margin-top:2px">'+T("مرتبط")+'</div></div></div>'+syncBlock()+'<button class="ghost" style="width:100%;margin-top:14px;color:#d33" onclick="unLink(\''+p+'\')">'+T("إلغاء الربط")+'</button>'+note+'</div>';
-  return '<div class="task"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+lnkBadge(p,32)+'<b>'+T(x.t)+'</b></div><input id="lk'+p+'" type="'+x.ty+'" dir="auto" style="width:100%" placeholder="'+T(x.ph)+'">'+(LERR?'<div style="color:#d33;font-size:13px;margin-top:8px">'+LERR+'</div>':"")+'<button style="width:100%;margin-top:12px" onclick="doLink(\''+p+'\')">'+T(x.t)+'</button>'+note+'</div>';
+  if(p==="g"){
+    const note='<div class="sub" style="margin-top:12px">'+T("تتم مزامنة مهامك وروتينك سحابياً وتُحفظ بأمان في حسابك السحابي لتصل إليها من أي جهاز.")+'</div>';
+    if(v){
+      return '<div class="task"><div style="display:flex;align-items:center;gap:12px">'+
+        (CS.photo?'<img src="'+esc(CS.photo)+'" alt="Google" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid var(--line);flex:none">':lnkBadge("g",44))+
+        '<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis" dir="auto">'+esc(CS.name||v)+'</div><div class="sub" style="font-size:12px;overflow:hidden;text-overflow:ellipsis" dir="auto">'+esc(v)+'</div><div style="color:#16a34a;font-size:13px;margin-top:2px;font-weight:600">'+T("مرتبط بحساب جوجل")+'</div></div></div>'+
+        syncBlock()+
+        '<button class="ghost" style="width:100%;margin-top:14px;color:#d33" onclick="unLink(\'g\')">'+T("إلغاء الربط")+'</button>'+
+        note+'</div>';
+    }
+    return '<div class="task">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+lnkBadge("g",32)+'<b>'+T(x.t)+'</b></div>'+
+      '<div class="sub" style="margin-bottom:14px">'+T("سجّل الدخول بحساب جوجل لحفظ مهامك ومزامنتها سحابياً بشكل فعلي والوصول إليها من أي جهاز.")+'</div>'+
+      '<button class="g-btn" id="gLinkBtn" onclick="linkGoogle()">'+
+        '<svg width="18" height="18" viewBox="0 0 24 24" style="flex:none"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.15C3.25 21.3 7.34 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.27C.46 8.2 0 10.04 0 12s.46 3.8 1.27 5.42l4.01-3.15Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.25 2.7 1.27 6.58l4.01 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"/></svg>'+
+        '<span>'+T("تسجيل الدخول والربط بحساب جوجل")+'</span>'+
+      '</button>'+
+      (LERR?'<div style="color:#d33;font-size:13px;margin-top:10px">'+LERR+'</div>':'')+
+      note+'</div>';
+  }
+  if(p==="f"){
+    const note='<div class="sub" style="margin-top:12px">'+T("تتم مزامنة مهامك وروتينك سحابياً وتُحفظ بأمان في حسابك السحابي لتصل إليها من أي جهاز.")+'</div>';
+    if(v){
+      return '<div class="task"><div style="display:flex;align-items:center;gap:12px">'+
+        (LNK.fPhoto?'<img src="'+esc(LNK.fPhoto)+'" alt="Facebook" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid var(--line);flex:none">':lnkBadge("f",44))+
+        '<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis" dir="auto">'+esc(v)+'</div>'+
+        (LNK.fEmail?'<div class="sub" style="font-size:12px;overflow:hidden;text-overflow:ellipsis" dir="auto">'+esc(LNK.fEmail)+'</div>':'')+
+        '<div style="color:#16a34a;font-size:13px;margin-top:2px;font-weight:600">'+T("مرتبط بحساب فيسبوك")+'</div></div></div>'+
+        (CS.id?syncBlock():'')+
+        '<button class="ghost" style="width:100%;margin-top:14px;color:#d33" onclick="unLink(\'f\')">'+T("إلغاء الربط")+'</button>'+
+        note+'</div>';
+    }
+    const guideHtml=FB_GUIDE_OPEN?'<div style="margin-top:12px;padding:12px;border-radius:10px;background:var(--accbg);font-size:13px;line-height:1.6"><b style="display:block;margin-bottom:6px">'+T("خطوات تفعيل فيسبوك في Firebase")+':</b><ol style="margin:0;padding-inline-start:20px"><li>'+T("افتح Firebase Console -> Authentication -> Sign-in method.")+'</li><li>'+T("اختر إضافة موفر جديد Facebook واضغط تفعيل.")+'</li><li>'+T("أنشئ تطبيقاً في developers.facebook.com وانسخ App ID و App Secret.")+'</li></ol></div>':'';
+    const manualHtml=FB_MANUAL_OPEN?'<div style="margin-top:10px"><input id="lkf_manual" type="text" dir="auto" style="width:100%" placeholder="'+T("اسمك على فيسبوك")+'"><button style="width:100%;margin-top:10px" onclick="doManualLinkF()">'+T("حفظ")+'</button></div>':'';
+    return '<div class="task">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+lnkBadge("f",32)+'<b>'+T(x.t)+'</b></div>'+
+      '<div class="sub" style="margin-bottom:14px">'+T("سجّل الدخول بحساب فيسبوك لحفظ مهامك ومزامنتها سحابياً بشكل فعلي والوصول إليها من أي جهاز.")+'</div>'+
+      '<button class="g-btn" id="fLinkBtn" style="background:#1877f2;color:#fff;border:none;box-shadow:0 2px 8px rgba(24,119,242,.3)" onclick="linkFacebook()">'+
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="flex:none"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>'+
+        '<span>'+T("تسجيل الدخول والربط بحساب فيسبوك")+'</span>'+
+      '</button>'+
+      (LERR?'<div style="color:#d33;font-size:13px;margin-top:10px;line-height:1.4">'+LERR+'</div>':'')+
+      guideHtml+
+      '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><button class="ghost" style="width:100%;font-size:13px;padding:8px" onclick="FB_MANUAL_OPEN=!FB_MANUAL_OPEN;renderH()">'+T("ربط بالاسم أو الرابط يدوياً")+'</button>'+manualHtml+'</div>'+
+      note+'</div>';
+  }
+  const note='<div class="sub" style="margin-top:12px">'+T("الربط محفوظ على جهازك لتخصيص الاسم والمظهر.")+'</div>';
+  if(v)return '<div class="task"><div style="display:flex;align-items:center;gap:12px">'+lnkBadge(p,44)+'<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis" dir="auto">'+esc(v)+'</div><div style="color:#16a34a;font-size:13px;margin-top:2px">'+T("مرتبط")+'</div></div></div><button class="ghost" style="width:100%;margin-top:14px;color:#d33" onclick="unLink(\''+p+'\')">'+T("إلغاء الربط")+'</button>'+note+'</div>';
+  return '<div class="task"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+lnkBadge(p,32)+'<b>'+T(x.t)+'</b></div><input id="lk'+p+'" type="'+x.ty+'" dir="auto" style="width:100%" placeholder="'+T(x.ph)+'">'+(LERR?'<div style="color:#d33;font-size:13px;margin-top:8px">'+LERR+'</div>':'')+'<button style="width:100%;margin-top:12px" onclick="doLink(\''+p+'\')">'+T(x.t)+'</button>'+note+'</div>';
 }
 function sysOk(){try{return "Notification" in window&&Notification.permission==="granted"}catch(e){return false}}
 function inApp(title,body){
@@ -1049,7 +1345,7 @@ function toneCardHtml(q){
 }
 const PK="profile-v1";let prof={name:""};
 try{const q=localStorage.getItem(PK);if(q)prof=JSON.parse(q)||prof}catch(e){}
-function avHtml(){const n=(prof.name||"").trim();return n?esc(Array.from(n)[0]):ico("i:user","26px")}
+function avHtml(){if(CS.photo)return '<img src="'+esc(CS.photo)+'" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';const n=(prof.name||"").trim();return n?esc(Array.from(n)[0]):ico("i:user","26px")}
 function setName(v){prof.name=v;cloudPush();try{localStorage.setItem(PK,JSON.stringify(prof))}catch(e){}const a=document.getElementById("avN");if(a)a.innerHTML=avHtml()}
 function setThm(v){const h=document.documentElement;h.classList.add("tt");if(v==="auto")h.removeAttribute("data-theme");else h.setAttribute("data-theme",v);try{if(v==="auto")localStorage.removeItem("theme-v1");else localStorage.setItem("theme-v1",v)}catch(e){}drawThm();renderH();setTimeout(()=>h.classList.remove("tt"),450)}
 function askWipe(){const m=document.getElementById("modal");m.innerHTML='<div class="sheet"><b>'+T("هل تريد مسح جميع البيانات؟")+'</b><div class="sub" style="margin-top:4px">'+T("ستُمسح جميع المهام والروتينات ولا يمكن استرجاعها.")+'</div><div class="row" style="margin-top:12px"><button style="background:#d33" onclick="doWipe()">'+T("نعم، امسح")+'</button><button class="ghost" onclick="closeEdit()">'+T("إلغاء")+'</button></div></div>';openM(m)}
