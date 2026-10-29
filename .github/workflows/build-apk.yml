@@ -17,7 +17,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: 'npm'
 
       - name: Install Dependencies
         run: npm install
@@ -30,17 +31,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: 'platforms;android-35 build-tools;35.0.0'
+          cache: 'gradle'
 
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Grant Execute Permission for Gradle
-        run: chmod +x android/gradlew
+      - name: Prepare Gradlew Permissions
+        run: |
+          sed -i 's/\r$//' android/gradlew
+          chmod +x android/gradlew
 
       - name: Build Debug APK with Gradle
         working-directory: ./android
