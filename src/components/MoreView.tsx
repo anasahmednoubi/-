@@ -16,6 +16,9 @@ import {
   logOutFromGoogle,
   signInWithFacebook,
   logOutFromFacebook,
+  signUpWithEmail,
+  signInWithEmail,
+  sendPasswordReset,
 } from '../firebase';
 
 interface MoreViewProps {
@@ -204,6 +207,106 @@ export const MoreView: React.FC<MoreViewProps> = ({
   const [facebookLinkError, setFacebookLinkError] = useState('');
   const [showFbGuide, setShowFbGuide] = useState(false);
   const [showFbManual, setShowFbManual] = useState(false);
+
+  const [authMode, setAuthMode] = useState<'in' | 'up'>('in');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authErr, setAuthErr] = useState('');
+  const [authInfo, setAuthInfo] = useState('');
+
+  const getAuthErrorMsg = (code?: string) => {
+    const m: Record<string, string> = {
+      'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة',
+      'auth/wrong-password': 'البريد أو كلمة المرور غير صحيحة',
+      'auth/user-not-found': 'البريد أو كلمة المرور غير صحيحة',
+      'auth/email-already-in-use':
+        'هذا البريد مسجّل بالفعل، سجّل الدخول بدلًا من ذلك.',
+      'auth/weak-password': 'كلمة المرور ضعيفة.',
+      'auth/invalid-email': 'اكتب بريدًا إلكترونيًا صحيحًا.',
+      'auth/network-request-failed': 'تعذر الاتصال بالإنترنت.',
+      'auth/popup-closed-by-user': 'تم إغلاق نافذة جوجل.',
+      'auth/too-many-requests': 'محاولات كثيرة، حاول لاحقًا.',
+    };
+    return t(m[code || ''] || 'تعذر إتمام العملية. حاول مرة أخرى.', lang);
+  };
+
+  const handleAuthSubmit = async () => {
+    if (authBusy) return;
+    const e = authEmail.trim();
+    const p = authPassword;
+    if (!/^\S+@\S+\.\S+$/.test(e)) {
+      setAuthErr(t('اكتب بريدًا إلكترونيًا صحيحًا.', lang));
+      return;
+    }
+    if (p.length < 6) {
+      setAuthErr(t('كلمة المرور 6 أحرف على الأقل.', lang));
+      return;
+    }
+    setAuthBusy(true);
+    setAuthErr('');
+    setAuthInfo('');
+    try {
+      let user;
+      if (authMode === 'up') {
+        user = await signUpWithEmail(e, p, authName.trim());
+      } else {
+        user = await signInWithEmail(e, p);
+      }
+      if (user) {
+        onUpdateLinks({ ...accountLinks, g: user.email || e });
+        if (user.displayName && (!profile.name || profile.name === 'اسمك')) {
+          onUpdateProfile({ ...profile, name: user.displayName });
+        }
+        setAuthPassword('');
+      }
+    } catch (err: any) {
+      setAuthErr(getAuthErrorMsg(err?.code));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    if (authBusy) return;
+    setAuthBusy(true);
+    setAuthErr('');
+    setAuthInfo('');
+    try {
+      const user = await signInWithGoogle();
+      if (user && user.email) {
+        onUpdateLinks({ ...accountLinks, g: user.email });
+        if (user.displayName && (!profile.name || profile.name === 'اسمك')) {
+          onUpdateProfile({ ...profile, name: user.displayName });
+        }
+      }
+    } catch (err: any) {
+      if (
+        err.code !== 'auth/popup-closed-by-user' &&
+        err.code !== 'auth/cancelled-popup-request'
+      ) {
+        setAuthErr(getAuthErrorMsg(err?.code));
+      }
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    const e = authEmail.trim();
+    if (!/^\S+@\S+\.\S+$/.test(e)) {
+      setAuthErr(t('اكتب بريدًا إلكترونيًا صحيحًا.', lang));
+      return;
+    }
+    try {
+      await sendPasswordReset(e);
+      setAuthErr('');
+      setAuthInfo(t('أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك.', lang));
+    } catch (err: any) {
+      setAuthErr(getAuthErrorMsg(err?.code));
+    }
+  };
 
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -674,119 +777,6 @@ export const MoreView: React.FC<MoreViewProps> = ({
 
         {subPage === 'link' && (
           <div className="task">
-            <button
-              type="button"
-              className="ghost"
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 14px',
-              }}
-              onClick={() => setSubPage('linkG')}
-            >
-              <span
-                style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
-              >
-                <span
-                  style={{
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '50%',
-                    background: '#fff',
-                    color: '#4285f4',
-                    border: '1px solid var(--line)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                  }}
-                >
-                  G
-                </span>
-                <span>{t('ربط الحساب بجوجل', lang)}</span>
-              </span>
-              <span
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '14px',
-                  color: accountLinks.g ? '#16a34a' : 'var(--mute)',
-                }}
-              >
-                {t(accountLinks.g ? 'مرتبط' : 'غير مرتبط', lang)}
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    transform: `rotate(${arrowAngle}deg)`,
-                  }}
-                >
-                  <Icon name="i:chevdown" size="16px" />
-                </span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              className="ghost"
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 14px',
-                marginTop: '8px',
-              }}
-              onClick={() => setSubPage('linkF')}
-            >
-              <span
-                style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
-              >
-                <span
-                  style={{
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '50%',
-                    background: '#1877f2',
-                    color: '#fff',
-                    border: '1px solid var(--line)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                  }}
-                >
-                  f
-                </span>
-                <span>{t('ربط الحساب بفيسبوك', lang)}</span>
-              </span>
-              <span
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '14px',
-                  color: accountLinks.f ? '#16a34a' : 'var(--mute)',
-                }}
-              >
-                {t(accountLinks.f ? 'مرتبط' : 'غير مرتبط', lang)}
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    transform: `rotate(${arrowAngle}deg)`,
-                  }}
-                >
-                  <Icon name="i:chevdown" size="16px" />
-                </span>
-              </span>
-            </button>
-          </div>
-        )}
-
-        {subPage === 'linkG' && (
-          <div className="task">
             {accountLinks.g ? (
               <>
                 <div
@@ -822,6 +812,7 @@ export const MoreView: React.FC<MoreViewProps> = ({
                         color: '#16a34a',
                         fontSize: '13px',
                         marginTop: '2px',
+                        fontWeight: 600,
                       }}
                     >
                       {t('مرتبط', lang)}
@@ -841,23 +832,169 @@ export const MoreView: React.FC<MoreViewProps> = ({
                     onUpdateLinks(copy);
                   }}
                 >
-                  {t('إلغاء الربط', lang)}
+                  {t('تسجيل الخروج', lang)}
                 </button>
               </>
             ) : (
               <>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    className={`chip ${authMode === 'in' ? 'on' : ''}`}
+                    style={{ flex: 1 }}
+                    onClick={() => {
+                      setAuthMode('in');
+                      setAuthErr('');
+                      setAuthInfo('');
+                    }}
+                  >
+                    {t('تسجيل الدخول', lang)}
+                  </button>
+                  <button
+                    type="button"
+                    className={`chip ${authMode === 'up' ? 'on' : ''}`}
+                    style={{ flex: 1 }}
+                    onClick={() => {
+                      setAuthMode('up');
+                      setAuthErr('');
+                      setAuthInfo('');
+                    }}
+                  >
+                    {t('حساب جديد', lang)}
+                  </button>
+                </div>
+
+                {authMode === 'up' && (
+                  <input
+                    type="text"
+                    dir="auto"
+                    autoComplete="name"
+                    style={{ width: '100%', marginTop: '10px' }}
+                    placeholder={t('الاسم (اختياري)', lang)}
+                    value={authName}
+                    onChange={(e) => setAuthName(e.target.value)}
+                  />
+                )}
+
+                <input
+                  type="email"
+                  dir="auto"
+                  autoComplete="email"
+                  style={{ width: '100%', marginTop: '10px' }}
+                  placeholder={t('البريد الإلكتروني', lang)}
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                />
+
+                <input
+                  type="password"
+                  dir="auto"
+                  autoComplete={
+                    authMode === 'up' ? 'new-password' : 'current-password'
+                  }
+                  style={{ width: '100%', marginTop: '10px' }}
+                  placeholder={t('كلمة المرور', lang)}
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                />
+
+                {authErr && (
+                  <div
+                    style={{
+                      color: '#d33',
+                      fontSize: '13px',
+                      marginTop: '8px',
+                      lineHeight: '1.4',
+                    }}
+                  >
+                    {authErr}
+                  </div>
+                )}
+
+                {authInfo && (
+                  <div
+                    style={{
+                      color: '#16a34a',
+                      fontSize: '13px',
+                      marginTop: '8px',
+                      lineHeight: '1.4',
+                    }}
+                  >
+                    {authInfo}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  style={{ width: '100%', marginTop: '12px' }}
+                  disabled={authBusy}
+                  onClick={handleAuthSubmit}
+                >
+                  {t(
+                    authMode === 'up' ? 'إنشاء الحساب' : 'تسجيل الدخول',
+                    lang
+                  )}
+                </button>
+
+                {authMode === 'in' && (
+                  <button
+                    type="button"
+                    className="del"
+                    style={{
+                      width: '100%',
+                      marginTop: '6px',
+                      fontSize: '14px',
+                    }}
+                    onClick={handleResetPassword}
+                  >
+                    {t('نسيت كلمة المرور؟', lang)}
+                  </button>
+                )}
+
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    marginBottom: '8px',
+                    margin: '12px 0',
+                    color: 'var(--mute)',
+                    fontSize: '13px',
                   }}
                 >
                   <span
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      flex: 1,
+                      height: '1px',
+                      background: 'var(--line)',
+                    }}
+                  />
+                  {t('أو', lang)}
+                  <span
+                    style={{
+                      flex: 1,
+                      height: '1px',
+                      background: 'var(--line)',
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="ghost"
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                  }}
+                  disabled={authBusy}
+                  onClick={handleGoogleAuth}
+                >
+                  <span
+                    style={{
+                      width: '24px',
+                      height: '24px',
                       borderRadius: '50%',
                       background: '#fff',
                       color: '#4285f4',
@@ -866,377 +1003,22 @@ export const MoreView: React.FC<MoreViewProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: 800,
+                      fontSize: '13px',
                     }}
                   >
                     G
                   </span>
-                  <b>{t('ربط الحساب بجوجل', lang)}</b>
-                </div>
-                <div className="sub" style={{ marginBottom: '14px' }}>
+                  <span>{t('المتابعة مع جوجل', lang)}</span>
+                </button>
+
+                <div className="sub" style={{ marginTop: '12px' }}>
                   {t(
-                    'سجّل الدخول بحساب جوجل لحفظ مهامك ومزامنتها سحابياً بشكل فعلي والوصول إليها من أي جهاز.',
+                    'تسجيل الدخول بجوجل حقيقي، وبياناتك تُحفظ وتتزامن على حسابك بين كل أجهزتك.',
                     lang
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className="g-btn"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    width: '100%',
-                    background: 'var(--card)',
-                    color: 'var(--text)',
-                    border: '1.5px solid var(--line)',
-                    borderRadius: '10px',
-                    padding: '12px 14px',
-                    fontWeight: 600,
-                    fontSize: '15px',
-                    cursor: 'pointer',
-                  }}
-                  onClick={async () => {
-                    setLinkError('');
-                    try {
-                      const user = await signInWithGoogle();
-                      if (user && user.email) {
-                        onUpdateLinks({ ...accountLinks, g: user.email });
-                        if (
-                          user.displayName &&
-                          (!profile.name || profile.name === 'اسمك')
-                        ) {
-                          onUpdateProfile({ ...profile, name: user.displayName });
-                        }
-                      }
-                    } catch (err: any) {
-                      if (
-                        err.code !== 'auth/popup-closed-by-user' &&
-                        err.code !== 'auth/cancelled-popup-request'
-                      ) {
-                        setLinkError(
-                          err.message || t('تعذر الاتصال بحساب جوجل', lang)
-                        );
-                      }
-                    }
-                  }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    style={{ flex: 'none' }}
-                  >
-                    <path
-                      fill="#4285F4"
-                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.15C3.25 21.3 7.34 24 12 24Z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.27C.46 8.2 0 10.04 0 12s.46 3.8 1.27 5.42l4.01-3.15Z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.25 2.7 1.27 6.58l4.01 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"
-                    />
-                  </svg>
-                  <span>{t('تسجيل الدخول والربط بحساب جوجل', lang)}</span>
-                </button>
-                {linkError && (
-                  <div
-                    style={{ color: '#d33', fontSize: '13px', marginTop: '10px' }}
-                  >
-                    {linkError}
-                  </div>
-                )}
-              </>
-            )}
-            <div className="sub" style={{ marginTop: '12px' }}>
-              {t(
-                'تتم مزامنة مهامك وروتينك سحابياً وتُحفظ بأمان في حسابك السحابي لتصل إليها من أي جهاز.',
-                lang
-              )}
-            </div>
-          </div>
-        )}
-
-        {subPage === 'linkF' && (
-          <div className="task">
-            {accountLinks.f ? (
-              <>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '44px',
-                      height: '44px',
-                      borderRadius: '50%',
-                      background: '#1877f2',
-                      color: '#fff',
-                      border: '1px solid var(--line)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                      fontSize: '22px',
-                    }}
-                  >
-                    f
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700 }} dir="auto">
-                      {accountLinks.f}
-                    </div>
-                    <div
-                      style={{
-                        color: '#16a34a',
-                        fontSize: '13px',
-                        marginTop: '2px',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {t('مرتبط بحساب فيسبوك', lang)}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="ghost"
-                  style={{ width: '100%', marginTop: '14px', color: '#d33' }}
-                  onClick={async () => {
-                    try {
-                      await logOutFromFacebook();
-                    } catch (e) {}
-                    const copy = { ...accountLinks };
-                    delete copy.f;
-                    onUpdateLinks(copy);
-                    setFacebookLinkError('');
-                  }}
-                >
-                  {t('إلغاء الربط', lang)}
-                </button>
-              </>
-            ) : (
-              <>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    marginBottom: '8px',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: '#1877f2',
-                      color: '#fff',
-                      border: '1px solid var(--line)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                    }}
-                  >
-                    f
-                  </span>
-                  <b>{t('ربط الحساب بفيسبوك', lang)}</b>
-                </div>
-
-                <div className="sub" style={{ marginBottom: '14px' }}>
-                  {t(
-                    'سجّل الدخول بحساب فيسبوك لحفظ مهامك ومزامنتها سحابياً بشكل فعلي والوصول إليها من أي جهاز.',
-                    lang
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  disabled={connectingFacebook}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    width: '100%',
-                    background: '#1877f2',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '10px',
-                    padding: '12px 14px',
-                    fontWeight: 600,
-                    fontSize: '15px',
-                    cursor: connectingFacebook ? 'default' : 'pointer',
-                    opacity: connectingFacebook ? 0.75 : 1,
-                    boxShadow: '0 2px 8px rgba(24,119,242,0.3)',
-                    transition: 'background-color 0.2s, transform 0.15s',
-                  }}
-                  onClick={async () => {
-                    setFacebookLinkError('');
-                    setConnectingFacebook(true);
-                    try {
-                      const user = await signInWithFacebook();
-                      if (user) {
-                        const fbName =
-                          user.displayName ||
-                          (user.email ? user.email.split('@')[0] : 'Facebook User');
-                        onUpdateLinks({ ...accountLinks, f: fbName });
-                        if (
-                          user.displayName &&
-                          (!profile.name || profile.name === 'اسمك')
-                        ) {
-                          onUpdateProfile({ ...profile, name: user.displayName });
-                        }
-                      }
-                    } catch (err: any) {
-                      console.error('Facebook sign in error:', err);
-                      if (
-                        err.code === 'auth/popup-closed-by-user' ||
-                        err.code === 'auth/cancelled-popup-request'
-                      ) {
-                        // User canceled popup
-                      } else if (
-                        err.code === 'auth/operation-not-allowed' ||
-                        err.code === 'auth/configuration-not-found' ||
-                        (err.message && err.message.includes('configuration'))
-                      ) {
-                        setFacebookLinkError(
-                          t(
-                            'يتطلب تفعيل موفر فيسبوك في Firebase Console أولاً بإدخال App ID و App Secret.',
-                            lang
-                          )
-                        );
-                        setShowFbGuide(true);
-                      } else {
-                        setFacebookLinkError(
-                          err.message || t('تعذر الاتصال بحساب فيسبوك', lang)
-                        );
-                      }
-                    } finally {
-                      setConnectingFacebook(false);
-                    }
-                  }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    style={{ flex: 'none' }}
-                  >
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  <span>
-                    {connectingFacebook
-                      ? t('جارٍ الاتصال بفيسبوك…', lang)
-                      : t('تسجيل الدخول والربط بحساب فيسبوك', lang)}
-                  </span>
-                </button>
-
-                {facebookLinkError && (
-                  <div
-                    style={{
-                      color: '#d33',
-                      fontSize: '13px',
-                      marginTop: '10px',
-                      lineHeight: '1.4',
-                    }}
-                  >
-                    {facebookLinkError}
-                  </div>
-                )}
-
-                {showFbGuide && (
-                  <div
-                    style={{
-                      marginTop: '12px',
-                      padding: '12px',
-                      borderRadius: '10px',
-                      background: 'var(--accbg)',
-                      fontSize: '13px',
-                      lineHeight: '1.6',
-                    }}
-                  >
-                    <b style={{ display: 'block', marginBottom: '6px' }}>
-                      {t('خطوات تفعيل فيسبوك في Firebase', lang)}:
-                    </b>
-                    <ol style={{ margin: '0', paddingInlineStart: '20px' }}>
-                      <li>
-                        {lang === 'en'
-                          ? 'Go to Firebase Console -> Authentication -> Sign-in method.'
-                          : 'افتح Firebase Console -> Authentication -> Sign-in method.'}
-                      </li>
-                      <li>
-                        {lang === 'en'
-                          ? 'Add "Facebook" as a provider and enable it.'
-                          : 'اختر إضافة موفر جديد "Facebook" واضغط تفعيل.'}
-                      </li>
-                      <li>
-                        {lang === 'en'
-                          ? 'Create a Meta App on developers.facebook.com and paste the App ID & App Secret.'
-                          : 'أنشئ تطبيقاً في developers.facebook.com وانسخ App ID و App Secret.'}
-                      </li>
-                    </ol>
-                  </div>
-                )}
-
-                <div style={{ marginTop: '14px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
-                  <button
-                    type="button"
-                    className="ghost"
-                    style={{ width: '100%', fontSize: '13px', padding: '8px' }}
-                    onClick={() => setShowFbManual(!showFbManual)}
-                  >
-                    {t('ربط بالاسم أو الرابط يدوياً', lang)}
-                  </button>
-
-                  {showFbManual && (
-                    <div style={{ marginTop: '10px' }}>
-                      <input
-                        type="text"
-                        dir="auto"
-                        style={{ width: '100%' }}
-                        placeholder={t('اسمك على فيسبوك', lang)}
-                        value={facebookNameInput}
-                        onChange={(e) => setFacebookNameInput(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        style={{ width: '100%', marginTop: '10px' }}
-                        onClick={() => {
-                          if (!facebookNameInput.trim()) return;
-                          onUpdateLinks({
-                            ...accountLinks,
-                            f: facebookNameInput.trim(),
-                          });
-                          setFacebookLinkError('');
-                        }}
-                      >
-                        {t('حفظ', lang)}
-                      </button>
-                    </div>
                   )}
                 </div>
               </>
             )}
-
-            <div className="sub" style={{ marginTop: '12px' }}>
-              {t(
-                'تتم مزامنة مهامك وروتينك سحابياً وتُحفظ بأمان في حسابك السحابي لتصل إليها من أي جهاز.',
-                lang
-              )}
-            </div>
           </div>
         )}
 

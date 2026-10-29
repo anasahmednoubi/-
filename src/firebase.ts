@@ -5,6 +5,10 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   linkWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
   signOut,
   onAuthStateChanged,
   User,
@@ -62,6 +66,30 @@ export async function signInWithFacebook(): Promise<User> {
     const result = await signInWithPopup(auth, provider);
     return result.user;
   }
+}
+
+export async function signUpWithEmail(
+  email: string,
+  pass: string,
+  name?: string
+): Promise<User> {
+  const cred = await createUserWithEmailAndPassword(auth, email, pass);
+  if (name && name.trim()) {
+    await updateProfile(cred.user, { displayName: name.trim() });
+  }
+  return auth.currentUser || cred.user;
+}
+
+export async function signInWithEmail(
+  email: string,
+  pass: string
+): Promise<User> {
+  const cred = await signInWithEmailAndPassword(auth, email, pass);
+  return cred.user;
+}
+
+export async function sendPasswordReset(email: string): Promise<void> {
+  await sendPasswordResetEmail(auth, email);
 }
 
 export async function logOutFromGoogle(): Promise<void> {
