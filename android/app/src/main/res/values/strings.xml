@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">إنجازاتي</string>
+    <string name="title_activity_main">إنجازاتي</string>
+    <string name="package_name">com.enjazati.app</string>
+    <string name="custom_url_scheme">com.enjazati.app</string>
+</resources>
