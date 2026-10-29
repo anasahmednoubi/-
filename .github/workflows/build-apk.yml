@@ -34,24 +34,17 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android Licenses & Install SDK
-        run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.0" || true
-
       - name: Prepare Capacitor Android Project
         run: |
           npx cap add android || true
           npx cap sync android
 
-      - name: Build Debug APK
-        run: |
-          chmod +x android/gradlew
-          cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Grant Execute Permission for Gradle
+        run: chmod +x android/gradlew
+
+      - name: Build Debug APK with Gradle
+        working-directory: ./android
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
