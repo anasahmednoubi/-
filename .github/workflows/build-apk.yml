@@ -33,7 +33,7 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Accept Android SDK Licenses & Install Platform 35
+      - name: Accept Licenses & Install Android SDK 35
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;35.0.0" || true
@@ -41,15 +41,37 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Prepare Gradlew Permissions
+      - name: Fix Compatibility & Dependencies
         run: |
+          # 1. إصلاح إصدارات androidx لتتوافق تماماً مع Android 35
+          sed -i "s/androidxActivityVersion = '1.11.0'/androidxActivityVersion = '1.9.3'/g" android/variables.gradle || true
+          sed -i "s/androidxAppCompatVersion = '1.7.1'/androidxAppCompatVersion = '1.7.0'/g" android/variables.gradle || true
+          sed -i "s/androidxCoordinatorLayoutVersion = '1.3.0'/androidxCoordinatorLayoutVersion = '1.2.0'/g" android/variables.gradle || true
+          sed -i "s/androidxCoreVersion = '1.17.0'/androidxCoreVersion = '1.15.0'/g" android/variables.gradle || true
+          sed -i "s/androidxFragmentVersion = '1.8.9'/androidxFragmentVersion = '1.8.5'/g" android/variables.gradle || true
+          sed -i "s/coreSplashScreenVersion = '1.2.0'/coreSplashScreenVersion = '1.0.1'/g" android/variables.gradle || true
+          sed -i "s/androidxWebkitVersion = '1.14.0'/androidxWebkitVersion = '1.12.1'/g" android/variables.gradle || true
+
+          # 2. حل تعارض كلاسات Kotlin المكررة
+          node -e '
+          const fs = require("fs");
+          let file = fs.readFileSync("android/app/build.gradle", "utf8");
+          if (!file.includes("kotlin-bom")) {
+            file = file.replace("dependencies {", "dependencies {\n    implementation platform(\x27org.jetbrains.kotlin:kotlin-bom:1.8.22\x27)");
+          }
+          if (!file.includes("resolutionStrategy.eachDependency")) {
+            file += `\nconfigurations.all {\n    resolutionStrategy.eachDependency { DependencyResolveDetails details ->\n        if (details.requested.group == \x27org.jetbrains.kotlin\x27 && (details.requested.name == \x27kotlin-stdlib-jdk7\x27 || details.requested.name == \x27kotlin-stdlib-jdk8\x27)) {\n            details.useTarget("org.jetbrains.kotlin:kotlin-stdlib:1.8.22")\n        }\n    }\n}\n`;
+          }
+          fs.writeFileSync("android/app/build.gradle", file);
+          '
+
+          # 3. إعداد صلاحيات ملف تشغيل Gradle
           sed -i 's/\r$//' android/gradlew
           chmod +x android/gradlew
 
       - name: Build Debug APK with Gradle
         working-directory: ./android
-        run: |
-          ./gradlew assembleDebug --no-daemon 2>&1 | tee gradle-build.log || (echo "=== سبب الخطأ بالتحديد ===" && grep -A 25 "What went wrong:" gradle-build.log && exit 1)
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
