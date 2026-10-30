@@ -38,6 +38,65 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;35.0.0" || true
 
+      - name: Ensure Android Project Files & Keystore
+        run: |
+          mkdir -p android/app
+          # 1. ضمان وجود مفتاح التوقيع الثابت (SHA-1)
+          if [ ! -f android/app/debug.keystore ]; then
+            echo "Restoring permanent debug.keystore..."
+            echo "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" | base64 -d > android/app/debug.keystore
+          fi
+          # 2. ضمان وجود ملف google-services.json الكامل
+          cat << 'EOF' > android/app/google-services.json
+{
+  "project_info": {
+    "project_number": "1053149613798",
+    "project_id": "enjazati-ebc1a",
+    "storage_bucket": "enjazati-ebc1a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1053149613798:android:1d66daf433851451323527",
+        "android_client_info": {
+          "package_name": "com.enjazati.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1053149613798-bq416f77tpib7npr4q3o3ffltrp1ptlp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.enjazati.app",
+            "certificate_hash": "3d9fd5b2d17e0737aba67509e1183b3768e0c139"
+          }
+        },
+        {
+          "client_id": "1053149613798-8joa9h0qfqqi50788utvus2jqmfmbbrc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXGL9wjDZ5Rs4lTb8zwWiiCgUx-QVD9-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1053149613798-8joa9h0qfqqi50788utvus2jqmfmbbrc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+EOF
+
       - name: Sync Capacitor Android
         run: npx cap sync android
 
@@ -51,6 +110,9 @@ jobs:
           sed -i "s/androidxFragmentVersion = '1.8.9'/androidxFragmentVersion = '1.8.5'/g" android/variables.gradle || true
           sed -i "s/coreSplashScreenVersion = '1.2.0'/coreSplashScreenVersion = '1.0.1'/g" android/variables.gradle || true
           sed -i "s/androidxWebkitVersion = '1.14.0'/androidxWebkitVersion = '1.12.1'/g" android/variables.gradle || true
+
+          # 2. إزالة أي تكرار لـ default_web_client_id لمنع خطأ Duplicate Resources
+          sed -i '/default_web_client_id/d' android/app/src/main/res/values/strings.xml || true
 
           # 2. حل تعارض كلاسات Kotlin المكررة (Duplicate class kotlin-stdlib)
           node -e '
