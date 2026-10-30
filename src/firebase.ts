@@ -51,9 +51,16 @@ export async function signInWithGoogle(): Promise<User> {
     try {
       const res = await FirebaseAuthentication.signInWithGoogle();
       if (res.credential?.idToken) {
-        const credential = GoogleAuthProvider.credential(res.credential.idToken);
-        const userCred = await signInWithCredential(auth, credential);
-        return userCred.user;
+        try {
+          const credential = GoogleAuthProvider.credential(res.credential.idToken);
+          const userCred = await signInWithCredential(auth, credential);
+          return userCred.user;
+        } catch (webSyncErr) {
+          console.warn('Web SDK sign-in sync skipped:', webSyncErr);
+        }
+      }
+      if (res.user) {
+        return res.user as unknown as User;
       }
       if (auth.currentUser) {
         return auth.currentUser;
@@ -98,6 +105,26 @@ export async function signUpWithEmail(
   pass: string,
   name?: string
 ): Promise<User> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const res = await FirebaseAuthentication.createUserWithEmailAndPassword({
+        email,
+        password: pass,
+      });
+      if (name && name.trim()) {
+        try {
+          await FirebaseAuthentication.updateProfile({ displayName: name.trim() });
+        } catch {}
+      }
+      if (res.user) {
+        return res.user as unknown as User;
+      }
+    } catch (nativeErr: any) {
+      console.error('Native signUpWithEmail error:', nativeErr);
+      throw nativeErr;
+    }
+  }
+
   const cred = await createUserWithEmailAndPassword(auth, email, pass);
   if (name && name.trim()) {
     await updateProfile(cred.user, { displayName: name.trim() });
@@ -109,23 +136,70 @@ export async function signInWithEmail(
   email: string,
   pass: string
 ): Promise<User> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const res = await FirebaseAuthentication.signInWithEmailAndPassword({
+        email,
+        password: pass,
+      });
+      if (res.user) {
+        return res.user as unknown as User;
+      }
+    } catch (nativeErr: any) {
+      console.error('Native signInWithEmail error:', nativeErr);
+      throw nativeErr;
+    }
+  }
+
   const cred = await signInWithEmailAndPassword(auth, email, pass);
   return cred.user;
 }
 
 export async function sendPasswordReset(email: string): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await FirebaseAuthentication.sendPasswordResetEmail({ email });
+      return;
+    } catch {}
+  }
   await sendPasswordResetEmail(auth, email);
 }
 
 export async function logOutFromGoogle(): Promise<void> {
-  await signOut(auth);
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await FirebaseAuthentication.signOut();
+    } catch {}
+  }
+  try {
+    await signOut(auth);
+  } catch {}
 }
 
 export async function logOutFromFacebook(): Promise<void> {
-  await signOut(auth);
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await FirebaseAuthentication.signOut();
+    } catch {}
+  }
+  try {
+    await signOut(auth);
+  } catch {}
 }
 
 export function subscribeToAuth(callback: (user: User | null) => void) {
+  if (Capacitor.isNativePlatform()) {
+    FirebaseAuthentication.addListener('authStateChange', (change) => {
+      callback((change.user as unknown as User) || auth.currentUser || null);
+    });
+    FirebaseAuthentication.getCurrentUser()
+      .then((res) => {
+        if (res.user) {
+          callback((res.user as unknown as User) || auth.currentUser || null);
+        }
+      })
+      .catch(() => {});
+  }
   return onAuthStateChanged(auth, callback);
 }
 

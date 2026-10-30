@@ -218,7 +218,8 @@ export const MoreView: React.FC<MoreViewProps> = ({
 
   const getAuthErrorMsg = (code?: string, rawErr?: any) => {
     const m: Record<string, string> = {
-      'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة.',
+      'auth/invalid-credential':
+        'البريد أو كلمة المرور غير صحيحة. إذا كنت لم تنشئ حساباً بعد في هذا المشروع، اضغط على زر "حساب جديد" بالأعلى لإنشائه أولاً.',
       'auth/wrong-password': 'كلمة المرور غير صحيحة.',
       'auth/user-not-found': 'لا يوجد حساب مسجّل بهذا البريد. اضغط على "حساب جديد" لإنشائه.',
       'auth/email-already-in-use':
@@ -309,7 +310,11 @@ export const MoreView: React.FC<MoreViewProps> = ({
         err.code !== 'auth/popup-closed-by-user' &&
         err.code !== 'auth/cancelled-popup-request'
       ) {
-        setAuthErr(getAuthErrorMsg(err?.code, err));
+        setAuthErr(
+          err?.message
+            ? `فشل تسجيل الدخول بجوجل: ${err.message}`
+            : getAuthErrorMsg(err?.code, err)
+        );
       }
     } finally {
       setAuthBusy(false);
