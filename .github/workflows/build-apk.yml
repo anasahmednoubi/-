@@ -52,7 +52,7 @@ jobs:
           sed -i "s/coreSplashScreenVersion = '1.2.0'/coreSplashScreenVersion = '1.0.1'/g" android/variables.gradle || true
           sed -i "s/androidxWebkitVersion = '1.14.0'/androidxWebkitVersion = '1.12.1'/g" android/variables.gradle || true
 
-          # 2. حل تعارض كلاسات Kotlin المكررة
+          # 2. حل تعارض كلاسات Kotlin المكررة (Duplicate class kotlin-stdlib)
           node -e '
           const fs = require("fs");
           let file = fs.readFileSync("android/app/build.gradle", "utf8");
@@ -69,13 +69,21 @@ jobs:
           sed -i 's/\r$//' android/gradlew
           chmod +x android/gradlew
 
+      - name: Display Signing Fingerprint (SHA-1)
+        run: |
+          echo "=================================================="
+          echo "SHA-1 Fingerprint used for APK signing:"
+          keytool -list -v -keystore android/app/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep "SHA1:" || true
+          echo "=================================================="
+
       - name: Build Debug APK with Gradle
         working-directory: ./android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Enjazati-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error 
+          if-no-files-found: error

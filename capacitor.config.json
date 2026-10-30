@@ -1,5 +1,11 @@
 {
   "appId": "com.enjazati.app",
   "appName": "إنجازاتي",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false,
+      "providers": ["google.com"]
+    }
+  }
 }

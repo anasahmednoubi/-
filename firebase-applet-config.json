@@ -1,12 +1,12 @@
 {
-  "projectId": "airy-hydra-gsmzh",
-  "appId": "1:396092710552:web:a6a65fdb7db7bae3c8baed",
-  "apiKey": "AIzaSyC67eKf55sa003mToOQcbxl7ZrFBbWqPno",
-  "authDomain": "airy-hydra-gsmzh.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-072bb3e9-36a8-48f3-bbc6-6c1cdb1d094d",
-  "storageBucket": "airy-hydra-gsmzh.firebasestorage.app",
-  "messagingSenderId": "396092710552",
+  "projectId": "enjazati-ebc1a",
+  "appId": "1:1053149613798:android:1d66daf433851451323527",
+  "apiKey": "AIzaSyDXGL9wjDZ5Rs4lTb8zwWiiCgUx-QVD9-s",
+  "authDomain": "enjazati-ebc1a.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "enjazati-ebc1a.firebasestorage.app",
+  "messagingSenderId": "1053149613798",
   "measurementId": "",
-  "oAuthClientId": "396092710552-h7ief6t9tm95kmoj8h58d71e5nvsuq8f.apps.googleusercontent.com",
+  "oAuthClientId": "1053149613798-8joa9h0qfqqi50788utvus2jqmfmbbrc.apps.googleusercontent.com",
   "recaptchaSiteKey": ""
 }

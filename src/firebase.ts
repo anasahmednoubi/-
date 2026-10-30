@@ -11,6 +11,7 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  signInWithCredential,
   User,
 } from 'firebase/auth';
 import {
@@ -20,11 +21,17 @@ import {
   setDoc,
   getDocFromServer,
 } from 'firebase/firestore';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import firebaseConfig from '../firebase-applet-config.json';
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const db =
+  firebaseConfig.firestoreDatabaseId &&
+  firebaseConfig.firestoreDatabaseId !== '(default)'
+    ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+    : getFirestore(app);
 
 export async function testFirestoreConnection() {
   try {
@@ -40,6 +47,24 @@ export async function testFirestoreConnection() {
 }
 
 export async function signInWithGoogle(): Promise<User> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const res = await FirebaseAuthentication.signInWithGoogle();
+      if (res.credential?.idToken) {
+        const credential = GoogleAuthProvider.credential(res.credential.idToken);
+        const userCred = await signInWithCredential(auth, credential);
+        return userCred.user;
+      }
+      if (auth.currentUser) {
+        return auth.currentUser;
+      }
+      throw new Error('لم يتم استلام بيانات الحساب من خدمة Google');
+    } catch (err: any) {
+      console.error('Native Google Sign In Error:', err);
+      throw err;
+    }
+  }
+
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   const result = await signInWithPopup(auth, provider);

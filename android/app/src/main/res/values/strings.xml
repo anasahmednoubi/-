@@ -4,4 +4,5 @@
     <string name="title_activity_main">إنجازاتي</string>
     <string name="package_name">com.enjazati.app</string>
     <string name="custom_url_scheme">com.enjazati.app</string>
+    <string name="default_web_client_id">396092710552-h7ief6t9tm95kmoj8h58d71e5nvsuq8f.apps.googleusercontent.com</string>
 </resources>

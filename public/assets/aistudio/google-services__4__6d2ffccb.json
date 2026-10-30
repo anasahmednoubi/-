@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1053149613798",
+    "project_id": "enjazati-ebc1a",
+    "storage_bucket": "enjazati-ebc1a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1053149613798:android:1d66daf433851451323527",
+        "android_client_info": {
+          "package_name": "com.enjazati.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1053149613798-bq416f77tpib7npr4q3o3ffltrp1ptlp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.enjazati.app",
+            "certificate_hash": "3d9fd5b2d17e0737aba67509e1183b3768e0c139"
+          }
+        },
+        {
+          "client_id": "1053149613798-8joa9h0qfqqi50788utvus2jqmfmbbrc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXGL9wjDZ5Rs4lTb8zwWiiCgUx-QVD9-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1053149613798-8joa9h0qfqqi50788utvus2jqmfmbbrc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

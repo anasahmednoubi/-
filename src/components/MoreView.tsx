@@ -216,20 +216,43 @@ export const MoreView: React.FC<MoreViewProps> = ({
   const [authErr, setAuthErr] = useState('');
   const [authInfo, setAuthInfo] = useState('');
 
-  const getAuthErrorMsg = (code?: string) => {
+  const getAuthErrorMsg = (code?: string, rawErr?: any) => {
     const m: Record<string, string> = {
-      'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة',
-      'auth/wrong-password': 'البريد أو كلمة المرور غير صحيحة',
-      'auth/user-not-found': 'البريد أو كلمة المرور غير صحيحة',
+      'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة.',
+      'auth/wrong-password': 'كلمة المرور غير صحيحة.',
+      'auth/user-not-found': 'لا يوجد حساب مسجّل بهذا البريد. اضغط على "حساب جديد" لإنشائه.',
       'auth/email-already-in-use':
-        'هذا البريد مسجّل بالفعل، سجّل الدخول بدلًا من ذلك.',
-      'auth/weak-password': 'كلمة المرور ضعيفة.',
+        'هذا البريد مسجّل بالفعل، اضغط على "تسجيل الدخول" بدلًا من ذلك.',
+      'auth/weak-password': 'كلمة المرور ضعيفة (يجب ألا تقل عن 6 أحرف أو أرقام).',
       'auth/invalid-email': 'اكتب بريدًا إلكترونيًا صحيحًا.',
-      'auth/network-request-failed': 'تعذر الاتصال بالإنترنت.',
-      'auth/popup-closed-by-user': 'تم إغلاق نافذة جوجل.',
-      'auth/too-many-requests': 'محاولات كثيرة، حاول لاحقًا.',
+      'auth/network-request-failed': 'تعذر الاتصال بالإنترنت، يرجى التحقق من اتصال هاتفك.',
+      'auth/popup-closed-by-user': 'تم إغلاق نافذة تسجيل الدخول قبل إتمامها.',
+      'auth/popup-blocked': 'تم حظر النافذة المنبثقة من قبل المتصفح أو التطبيق.',
+      'auth/too-many-requests': 'محاولات كثيرة خاطئة، يرجى الانتظار دقيقة والمحاولة ثانية.',
+      'auth/operation-not-allowed':
+        'تسجيل الدخول بالبريد الإلكتروني غير مفعّل في لوحة Firebase Console (Authentication > Sign-in method > Email/Password > Enable).',
+      'auth/unauthorized-domain':
+        'هذا النطاق غير مصرح به في Firebase Console (Authentication > Settings > Authorized domains).',
+      'auth/disallowed_useragent':
+        'تسجيل الدخول بجوجل عبر النوافذ المنبثقة غير مدعوم داخل المتصفح الداخلي. يرجى إنشاء حساب بالبريد الإلكتروني أو التأكد من إعداد Google Services للتطبيق.',
+      '10':
+        'فشل تسجيل الدخول بجوجل (كود 10 Developer Error): يرجى التأكد من إضافة بصمة SHA-1 واسم الحزمة com.enjazati.app في لوحة تحكم Firebase.',
+      '12500':
+        'فشل تسجيل الدخول بجوجل (كود 12500): يرجى التأكد من إضافة تطبيق أندرويد وبصمة SHA-1 في Firebase.',
     };
-    return t(m[code || ''] || 'تعذر إتمام العملية. حاول مرة أخرى.', lang);
+    if (code && m[code]) {
+      return t(m[code], lang);
+    }
+    if (rawErr?.message && typeof rawErr.message === 'string') {
+      if (rawErr.message.includes('disallowed_useragent')) {
+        return t(m['auth/disallowed_useragent'], lang);
+      }
+      if (rawErr.message.includes('10:') || rawErr.message.includes('DEVELOPER_ERROR')) {
+        return t(m['10'], lang);
+      }
+    }
+    const fallback = t('تعذر إتمام العملية. حاول مرة أخرى.', lang);
+    return code ? `${fallback} (${code})` : (rawErr?.message ? `${fallback} - ${rawErr.message}` : fallback);
   };
 
   const handleAuthSubmit = async () => {
@@ -262,7 +285,7 @@ export const MoreView: React.FC<MoreViewProps> = ({
         setAuthPassword('');
       }
     } catch (err: any) {
-      setAuthErr(getAuthErrorMsg(err?.code));
+      setAuthErr(getAuthErrorMsg(err?.code, err));
     } finally {
       setAuthBusy(false);
     }
@@ -286,7 +309,7 @@ export const MoreView: React.FC<MoreViewProps> = ({
         err.code !== 'auth/popup-closed-by-user' &&
         err.code !== 'auth/cancelled-popup-request'
       ) {
-        setAuthErr(getAuthErrorMsg(err?.code));
+        setAuthErr(getAuthErrorMsg(err?.code, err));
       }
     } finally {
       setAuthBusy(false);
@@ -837,6 +860,21 @@ export const MoreView: React.FC<MoreViewProps> = ({
               </>
             ) : (
               <>
+                <div
+                  style={{
+                    background: 'var(--card-bg, rgba(0,0,0,0.03))',
+                    border: '1px solid var(--line)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    marginBottom: '12px',
+                    fontSize: '12.5px',
+                    lineHeight: '1.5',
+                    color: 'var(--mute)',
+                  }}
+                >
+                  💡 {t('التطبيق يعمل بشكل كامل وتلقائي بدون إنترنت ويحفظ كل مهامك وروتيناتك على جهازك. تسجيل الدخول مطلوب فقط لمزامنة البيانات سحابياً.', lang)}
+                </div>
+
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <button
                     type="button"
@@ -1011,9 +1049,9 @@ export const MoreView: React.FC<MoreViewProps> = ({
                   <span>{t('المتابعة مع جوجل', lang)}</span>
                 </button>
 
-                <div className="sub" style={{ marginTop: '12px' }}>
+                <div className="sub" style={{ marginTop: '10px', fontSize: '12px', lineHeight: '1.4' }}>
                   {t(
-                    'تسجيل الدخول بجوجل حقيقي، وبياناتك تُحفظ وتتزامن على حسابك بين كل أجهزتك.',
+                    'ملاحظة: في تطبيق أندرويد المنزّل، يُنصح بإنشاء حساب بالبريد الإلكتروني وكلمة المرور، لأن جوجل تحظر تسجيل الدخول بالنوافذ المنبثقة داخل التطبيقات المستقلة.',
                     lang
                   )}
                 </div>
