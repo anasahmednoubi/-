@@ -219,7 +219,7 @@ export const MoreView: React.FC<MoreViewProps> = ({
   const getAuthErrorMsg = (code?: string, rawErr?: any) => {
     const m: Record<string, string> = {
       'auth/invalid-credential':
-        'البريد أو كلمة المرور غير صحيحة. إذا كنت لم تنشئ حساباً بعد في هذا المشروع، اضغط على زر "حساب جديد" بالأعلى لإنشائه أولاً.',
+        'البريد أو كلمة المرور غير صحيحة. اضغط على "حساب جديد" بالأعلى لإنشاء الحساب أولاً.',
       'auth/wrong-password': 'كلمة المرور غير صحيحة.',
       'auth/user-not-found': 'لا يوجد حساب مسجّل بهذا البريد. اضغط على "حساب جديد" لإنشائه.',
       'auth/email-already-in-use':
@@ -310,11 +310,15 @@ export const MoreView: React.FC<MoreViewProps> = ({
         err.code !== 'auth/popup-closed-by-user' &&
         err.code !== 'auth/cancelled-popup-request'
       ) {
-        setAuthErr(
-          err?.message
-            ? `فشل تسجيل الدخول بجوجل: ${err.message}`
-            : getAuthErrorMsg(err?.code, err)
-        );
+        if (err?.code === 'auth/invalid-credential' || err?.message?.includes('invalid-credential') || err?.message?.includes('10:') || err?.message?.includes('DEVELOPER_ERROR')) {
+          setAuthErr('فشل تسجيل الدخول بجوجل: يرجى التأكد من تفعيل موفر Google في لوحة تحكم Firebase (Authentication > Sign-in method > Google > تفعيل واختيار بريد الدعم).');
+        } else {
+          setAuthErr(
+            err?.message
+              ? `فشل تسجيل الدخول بجوجل: ${err.message}`
+              : getAuthErrorMsg(err?.code, err)
+          );
+        }
       }
     } finally {
       setAuthBusy(false);
