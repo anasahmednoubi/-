@@ -6,6 +6,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>إنجازاتي</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2048%2048%22%3E%3Crect%20x=%222%22%20y=%222%22%20width=%2244%22%20height=%2244%22%20rx=%2213%22%20fill=%22%23000%22%20stroke=%22%23fff%22%20stroke-width=%221.2%22/%3E%3Ccircle%20cx=%2224%22%20cy=%2225%22%20r=%2213%22%20fill=%22none%22%20stroke=%22%238b5cf6%22%20stroke-opacity=%22.28%22%20stroke-width=%224%22/%3E%3Ccircle%20cx=%2224%22%20cy=%2225%22%20r=%2213%22%20fill=%22none%22%20stroke=%22%238b5cf6%22%20stroke-width=%224%22%20stroke-linecap=%22round%22%20stroke-dasharray=%2261%2082%22%20transform=%22rotate(-90%2024%2025)%22/%3E%3Cpath%20d=%22M18.5%2025.5l4%204%207.5-8.5%22%20fill=%22none%22%20stroke=%22%238b5cf6%22%20stroke-width=%223.4%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3Cpath%20d=%22M37.5%206l1.1%203.4%203.4%201.1-3.4%201.1L37.5%2015l-1.1-3.4-3.4-1.1%203.4-1.1z%22%20fill=%22%238b5cf6%22/%3E%3C/svg%3E">
+<meta name="theme-color" content="#16141d">
+<style>
+#splash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg,#16141d);transition:opacity .45s ease,visibility .45s;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+#splash.out{opacity:0;visibility:hidden}
+#splash svg{width:104px;height:104px;animation:spIn .65s cubic-bezier(.2,.9,.3,1.15) both}
+#splash .arc{stroke-dasharray:0 82;animation:spArc 1s .2s ease-out forwards}
+#splash .sck{animation:spFade .3s .9s both}
+#splash .sst{transform-box:fill-box;transform-origin:center;animation:spFade .3s 1s both,spStar 1.6s 1.3s ease-in-out infinite}
+#splash h1{margin:6px 0 0;font-size:1.6rem;color:var(--text,#f1eff7);animation:spFade .5s .4s both}
+#splash .dots{display:flex;gap:7px;margin-top:6px}
+#splash .dots i{width:7px;height:7px;border-radius:50%;background:var(--acc,#8b5cf6);animation:spDot 1s infinite ease-in-out both}
+#splash .dots i:nth-child(2){animation-delay:.15s}#splash .dots i:nth-child(3){animation-delay:.3s}
+@keyframes spIn{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes spArc{to{stroke-dasharray:61 82}}
+@keyframes spFade{from{opacity:0}to{opacity:1}}
+@keyframes spStar{50%{transform:scale(1.25) rotate(15deg)}}
+@keyframes spDot{0%,80%,100%{transform:scale(.55);opacity:.4}40%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){#splash svg,#splash h1,#splash .sck,#splash .sst,#splash .dots i{animation:none}#splash .arc{animation:none;stroke-dasharray:61 82}}
+</style>
 <style>
 :root{--bg:#f6f4fb;--card:#fff;--text:#1d1b24;--mute:#6b6778;--line:#e3dfee;--acc:#7c3aed;--accbg:#ede4fd;--track:#e9e5f2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16141d;--card:#201d2b;--text:#f1eff7;--mute:#a6a1b8;--line:#342f45;--acc:#8b5cf6;--accbg:#2e2447;--track:#342f45}}
@@ -21,10 +41,10 @@ main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
 h1{font-size:24px;margin:8px 0 16px}
 .brand{display:flex;align-items:center;gap:10px;margin:8px 0 16px;min-width:0}
 .brand h1{margin:0}
-.logo{flex:none;display:block;--lbg:var(--acc);--lfg:#fff;--lbd:transparent}
+.logo{flex:none;display:block;--lbg:var(--acc);--lfg:#fff;--lbd:#000}
 .logo *{transition:fill .4s,stroke .4s}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .logo{--lbg:#000;--lfg:var(--acc);--lbd:rgba(255,255,255,.14)}}
-:root[data-theme="dark"] .logo{--lbg:#000;--lfg:var(--acc);--lbd:rgba(255,255,255,.14)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .logo{--lbg:#000;--lfg:var(--acc);--lbd:#fff}}
+:root[data-theme="dark"] .logo{--lbg:#000;--lfg:var(--acc);--lbd:#fff}
 .logo .arc{animation:logoDraw 1s ease-out}
 @keyframes logoDraw{from{stroke-dasharray:0 82}}
 @media (prefers-reduced-motion:reduce){.logo .arc{animation:none}}
@@ -214,8 +234,11 @@ html.tbtop #tour{bottom:auto!important;top:calc(150px + env(safe-area-inset-top,
 </style>
 </head>
 <body>
+<div id="splash" role="status" aria-label="جاري التحميل"><svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect x="2" y="2" width="44" height="44" rx="13" style="fill:var(--lbg);stroke:var(--lbd);stroke-width:1.2"/><circle cx="24" cy="25" r="13" fill="none" style="stroke:var(--lfg)" stroke-opacity=".28" stroke-width="4"/><circle class="arc" cx="24" cy="25" r="13" fill="none" style="stroke:var(--lfg)" stroke-width="4" stroke-linecap="round" transform="rotate(-90 24 25)"/><path class="sck" d="M18.5 25.5l4 4 7.5-8.5" fill="none" style="stroke:var(--lfg)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path class="sst" d="M37.5 6l1.1 3.4 3.4 1.1-3.4 1.1L37.5 15l-1.1-3.4-3.4-1.1 3.4-1.1z" style="fill:var(--lfg)"/></svg><h1>إنجازاتي</h1><div class="dots"><i></i><i></i><i></i></div></div>
+<script>(function(){try{var th=localStorage.getItem("theme-v1");if(th=="dark"||th=="light")document.documentElement.setAttribute("data-theme",th)}catch(e){}var s=document.getElementById("splash"),t0=Date.now(),done=false,rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches,min=rm?250:1500;function hide(){if(done||!s)return;done=true;setTimeout(function(){s.classList.add("out");setTimeout(function(){s.remove()},500)},Math.max(0,min-(Date.now()-t0)))}if(document.readyState==="complete")hide();else addEventListener("load",hide);setTimeout(hide,4000)})()</script>
+
 <main>
-<div class="hd"><div class="brand"><svg class="logo" width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="13" style="fill:var(--lbg);stroke:var(--lbd);stroke-width:1.5"/><rect x="2" y="2" width="44" height="44" rx="13" fill="url(#lgS)"/><circle cx="24" cy="25" r="13" fill="none" style="stroke:var(--lfg)" stroke-opacity=".28" stroke-width="4"/><circle class="arc" cx="24" cy="25" r="13" fill="none" style="stroke:var(--lfg)" stroke-width="4" stroke-linecap="round" stroke-dasharray="61 82" transform="rotate(-90 24 25)"/><path d="M18.5 25.5l4 4 7.5-8.5" fill="none" style="stroke:var(--lfg)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M39 4.5l1.1 3.4 3.4 1.1-3.4 1.1L39 13.5l-1.1-3.4-3.4-1.1 3.4-1.1z" style="fill:var(--lfg)"/></svg><h1>إنجازاتي</h1></div><button class="del" id="thm" aria-label="تبديل الوضع الليلي"></button></div>
+<div class="hd"><div class="brand"><svg class="logo" width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="13" style="fill:var(--lbg);stroke:var(--lbd);stroke-width:1.2"/><circle cx="24" cy="25" r="13" fill="none" style="stroke:var(--lfg)" stroke-opacity=".28" stroke-width="4"/><circle class="arc" cx="24" cy="25" r="13" fill="none" style="stroke:var(--lfg)" stroke-width="4" stroke-linecap="round" stroke-dasharray="61 82" transform="rotate(-90 24 25)"/><path d="M18.5 25.5l4 4 7.5-8.5" fill="none" style="stroke:var(--lfg)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M37.5 6l1.1 3.4 3.4 1.1-3.4 1.1L37.5 15l-1.1-3.4-3.4-1.1 3.4-1.1z" style="fill:var(--lfg)"/></svg><h1>إنجازاتي</h1></div><button class="del" id="thm" aria-label="تبديل الوضع الليلي"></button></div>
 <div class="tabs main" id="nav"><button id="tD" class="on" aria-label="اليوم"><span class="ti"><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="tn">اليوم</span></button><button id="tT" aria-label="مهام"><span class="ti"><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tn">مهام</span></button><button id="tR" aria-label="روتين"><span class="ti"><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></span><span class="tn">روتين</span></button><button id="tS" aria-label="إحصائيات"><span class="ti"><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></span><span class="tn">إحصائيات</span></button></div>
 <div id="pD"><div class="task" id="dSum"></div><div class="task" id="dR"></div><div class="task" id="dT"></div></div>
 <div id="pT" class="hide">
@@ -350,12 +373,30 @@ function tCtl(id){
 Object.assign(EN,{"بدون أولوية":"No priority","أدخل أرقامًا صحيحة":"Enter valid numbers"});
 Object.assign(EN,{"منخفضة":"Low","متوسطة":"Medium","عالية":"High","الأولوية":"Priority"});
 const PRI=[["منخفضة",""],["متوسطة","#f08a24"],["عالية","#e5533d"]];
-function prSel(id,v){return '<select id="'+id+'" aria-label="'+T("الأولوية")+'" style="width:100%;padding:12px 10px;border-radius:12px;border:1px solid var(--line);background:var(--track);color:var(--text);font:inherit">'+[[-1,"بدون أولوية"]].concat(PRI.map((x,i)=>[i,x[0]])).map(x=>'<option value="'+x[0]+'"'+((v==null?-1:v)===x[0]?" selected":"")+'>'+(x[0]>=0?T("الأولوية")+": ":"")+T(x[1])+'</option>').join("")+'</select>'}
+function prItem(v){return v<0?'<span>'+T("بدون أولوية")+'</span>':'<span style="background:'+PRC[v]+'73;padding:1px 8px;border-radius:6px">'+T(PRI[v][0])+'</span>'}
+function prSel(id,v,abs){
+  const cv=v==null?-1:v,ch=ico("i:chevdown","14px");
+  return '<div class="prd'+(abs?" abs":"")+'" id="'+id+'_w" style="position:relative;width:100%"><input type="hidden" id="'+id+'" value="'+cv+'"><button type="button" class="fdd" aria-haspopup="listbox" aria-expanded="false" aria-label="'+T("الأولوية")+'" onclick="prTog(\''+id+'\')">'+prItem(cv)+ch+'</button><div class="mx" id="'+id+'_p"><div class="mxi"><div class="fpanel" role="listbox">'
+   +[[-1,"بدون أولوية"]].concat(PRI.map((x,i)=>[i,x[0]])).map(x=>'<button type="button" class="fi'+(x[0]===cv?" on":"")+'" role="option" data-v="'+x[0]+'" onclick="prPick(\''+id+'\','+x[0]+')">'+prItem(x[0])+'</button>').join("")
+   +'</div></div></div></div>';
+}
+function prTog(id){const p=document.getElementById(id+"_p"),b=document.querySelector("#"+id+"_w>.fdd"),o=!p.classList.contains("open");p.classList.toggle("open",o);b.setAttribute("aria-expanded",o)}
+function prPick(id,v){
+  document.getElementById(id).value=v;
+  const w=document.getElementById(id+"_w"),b=w.querySelector(".fdd");
+  b.innerHTML=prItem(v)+ico("i:chevdown","14px");b.setAttribute("aria-expanded","false");
+  w.querySelectorAll(".fi").forEach(x=>x.classList.toggle("on",+x.dataset.v===v));
+  document.getElementById(id+"_p").classList.remove("open");
+}
+document.head.insertAdjacentHTML("beforeend",'<style>.prd.abs>.mx{position:absolute;inset-inline-start:0;top:100%;min-width:170px;z-index:30}.sheet .prd.abs>.mx{top:auto;bottom:100%}.prd .fdd{padding:9px 12px;font-size:14px;gap:6px}.prd .fi{font-size:15px}.prd .fi.on{background:var(--track)}</style>');
 const PRC=["#e6c200","#f08a24","#e5533d"];
 function prn(v){return v==null?-1:v}
-function prIco(v){if(v==null||v<0||!PRC[v])return "";const c=PRC[v],tx=v===0?"#3a2f00":"#fff";return '<span style="flex:none;font-size:11px;font-weight:700;line-height:1;padding:3px 8px;border-radius:99px;margin-inline-start:6px;white-space:nowrap;color:'+tx+';background:'+c+'">'+T(PRI[v][0])+'</span>'}
 function prRead(id){const e=document.getElementById(id),v=e?parseInt(e.value,10):NaN;return isNaN(v)?-1:v}
-function prHl(v){if(v==null||v<0)return "";const c=PRC[v||0]||PRC[0];return "border-inline-start:5px solid "+c+";background-image:linear-gradient("+c+"26,"+c+"26)"}
+function prMark(v,h){
+  if(v==null||v<0||!PRC[v])return h;
+  const c=PRC[v];
+  return '<mark title="'+T("الأولوية")+": "+T(PRI[v][0])+'" style="background:'+c+'73;color:inherit;padding:1px 6px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone">'+h+'</mark>';
+}
 function prBadge(v){v=v||0;return v>0?'<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;color:#fff;background:'+PRI[v][1]+'">'+T(PRI[v][0])+'</span>':""}
 function render(){
   const el=document.getElementById("list");
@@ -365,8 +406,8 @@ function render(){
   if(!tl.length){el.innerHTML='<div class="empty">'+T("لا توجد نتائج مطابقة")+'</div>';return}
   el.innerHTML='<div class="head" style="margin:4px 2px 8px"><b>'+T("المهام")+'</b>'+treoBtn()+'</div>'+(()=>{const card=t=>{
     const p=pct(t),K=key(today());
-    return `<div class="task ${t.finished?"done":""}" style="${prHl(t.pr)}">
-      <div class="head"><span class="name-t" style="display:flex;align-items:center;gap:10px"><button class="ck${(t.finished||t.dk===K)?" on":""}" onclick="doneT(${t.id})" aria-label="${T("تم")}">${(t.finished||t.dk===K)?CK:""}</button><span class="${(t.finished||t.dk===K)?"str":""}">${ico(t.icon||"i:pin")} ${esc(t.name)}</span>${prBadge(t.pr)}</span><span>${tCtl(t.id)}<button class="del" onclick="confirmDel('T',${t.id})" aria-label="${T("حذف")}">${ico("i:x")}</button></span></div>
+    return `<div class="task ${t.finished?"done":""}">
+      <div class="head"><span class="name-t" style="display:flex;align-items:center;gap:10px"><button class="ck${(t.finished||t.dk===K)?" on":""}" onclick="doneT(${t.id})" aria-label="${T("تم")}">${(t.finished||t.dk===K)?CK:""}</button><span class="${(t.finished||t.dk===K)?"str":""}">${ico(t.icon||"i:pin")} ${prMark(t.pr,esc(t.name))}</span></span><span>${tCtl(t.id)}<button class="del" onclick="confirmDel('T',${t.id})" aria-label="${T("حذف")}">${ico("i:x")}</button></span></div>
       <div class="bar"><div class="fill" data-k="${t.id}" data-to="${p}" style="width:${PP["T"+t.id]!==undefined?PP["T"+t.id]:p}%;background:${col(PP["T"+t.id]!==undefined?PP["T"+t.id]:p)}"></div></div>
       <div class="meta"><span>${t.done} / ${t.target} ${esc(t.unit)}</span><span style="color:${col(p)};font-weight:600">${p}%</span></div>
       ${(t.finished||t.prevUsed)?"":`
@@ -515,6 +556,10 @@ function moveR(id,dir,all){
   const tmp=routines[a];routines[a]=routines[b];routines[b]=tmp;
   saveR();renderR();
 }
+let RX={};
+function rxTog(id){RX[id]=!RX[id];const x=document.getElementById("rx"+id),b=document.getElementById("rb"+id);if(x)x.classList.toggle("open",RX[id]);if(b)b.setAttribute("aria-expanded",RX[id])}
+Object.assign(EN,{"التقدم خلال الأسبوع":"Weekly progress","المسجّل":"Recorded","الرقم يُضاف":"number is added"});
+document.head.insertAdjacentHTML("beforeend",'<style>.rx svg{transition:transform .3s}.rx[aria-expanded="true"] svg{transform:rotate(180deg)}@media (prefers-reduced-motion:reduce){.rx svg{transition:none}}</style>');
 function renderR(){
   const dow=today().getDay(),k=key(today());
   const td=routines.filter(r=>due(r,today()));
@@ -526,7 +571,7 @@ function renderR(){
   document.getElementById("sumBox").innerHTML='<div class="sub">'+T("نسبة إنجازك")+' '+(period==="M"?""+T("خلال الشهر")+"":""+T("خلال الأسبوع")+"")+'</div><div class="big" style="color:'+col(tp)+'">'+(tp===null?"—":tp+"%")+'</div><div class="bar"><div class="fill" data-k="all" data-to="'+(tp||0)+'" style="width:'+(PP["RSall"]!==undefined?PP["RSall"]:(tp||0))+'%;background:'+col(PP["RSall"]!==undefined?PP["RSall"]:tp)+'"></div></div><div class="sub">'+DNN+' '+T("من")+' '+SC+' '+T("مرة تم إنجازها")+'</div>';
   document.getElementById("rList").innerHTML=(st.length?'<div class="head" style="margin:4px 2px 8px"><b>'+T("جميع الروتينات")+'</b>'+reoBtn()+'</div>':'')+(fq&&!sl.length?'<div class="empty">'+T("لا توجد نتائج مطابقة")+'</div>':'')+sl.map(x=>{
     const r=x.r,s=x.s,days=schedTxt(r),wk7=ORDER.map((dw,i)=>{const d=wkStart();d.setDate(d.getDate()+i);return d}).filter(d=>due(r,d)),wt=wk7.length,wd=wk7.filter(d=>r.log[key(d)]).length,wp=wt?Math.round(wd/wt*100):0;
-    return '<div class="task" style="'+prHl(r.pr)+'"><div class="head"><span class="name-t">'+ico(r.icon||"i:repeat")+' '+esc(r.name)+prBadge(r.pr)+'</span><span>'+rowCtl(r.id,true)+'<button class="del" onclick="confirmDel(\'R\','+r.id+')" aria-label="'+T("حذف")+'">'+ico("i:x")+'</button></span></div><div class="sub">'+days+'</div><div class="wk">'+ORDER.map((dw,i)=>{const d=wkStart();d.setDate(d.getDate()+i);const kk=key(d),sch=due(r,d),on=!!r.log[kk];return '<button class="sq'+(on?' on':'')+(sch?'':' off')+(kk===k?' tdy':'')+'" '+(sch?'onclick="tickD('+r.id+',\''+kk+'\')"':'disabled')+' aria-label="'+DN[dw]+'"><span>'+DN[dw]+'</span><b>'+(on?CK:d.getDate())+'</b></button>'}).join('')+'</div><div class="bar"><div class="fill" data-k="'+r.id+'" data-to="'+wp+'" style="width:'+(PP["R"+r.id]!==undefined?PP["R"+r.id]:wp)+'%;background:'+col(PP["R"+r.id]!==undefined?PP["R"+r.id]:wp)+'"></div></div><div class="meta"><span>'+wd+' / '+wt+'</span><span style="color:'+col(wt?wp:null)+';font-weight:600">'+(wt?wp+"%":"—")+'</span></div></div>';
+    return '<div class="task"><div class="head"><span class="name-t" style="display:flex;align-items:center;gap:10px"><button class="ck'+(r.log[k]?" on":"")+'" '+(due(r,today())?'onclick="tick('+r.id+')"':'disabled style="opacity:.35"')+' aria-label="'+T("تم")+'">'+(r.log[k]?CK:"")+'</button><span class="'+(r.log[k]?"str":"")+'">'+ico(r.icon||"i:repeat")+' '+prMark(r.pr,esc(r.name))+'</span></span><span><button class="del rx" id="rb'+r.id+'" aria-expanded="'+!!RX[r.id]+'" aria-label="'+T("التقدم خلال الأسبوع")+'" onclick="rxTog('+r.id+')">'+ico("i:chevdown","18px")+'</button>'+rowCtl(r.id,true)+'<button class="del" onclick="confirmDel(\'R\','+r.id+')" aria-label="'+T("حذف")+'">'+ico("i:x")+'</button></span></div><div class="sub">'+days+'</div><div class="mx'+(RX[r.id]?" open":"")+'" id="rx'+r.id+'"><div class="mxi"><div class="wk">'+ORDER.map((dw,i)=>{const d=wkStart();d.setDate(d.getDate()+i);const kk=key(d),sch=due(r,d),on=!!r.log[kk];return '<button class="sq'+(on?' on':'')+(sch?'':' off')+(kk===k?' tdy':'')+'" '+(sch?'onclick="tickD('+r.id+',\''+kk+'\')"':'disabled')+' aria-label="'+DN[dw]+'"><span>'+DN[dw]+'</span><b>'+(on?CK:d.getDate())+'</b></button>'}).join('')+'</div><div class="bar"><div class="fill" data-k="'+r.id+'" data-to="'+wp+'" style="width:'+(PP["R"+r.id]!==undefined?PP["R"+r.id]:wp)+'%;background:'+col(PP["R"+r.id]!==undefined?PP["R"+r.id]:wp)+'"></div></div><div class="meta"><span>'+wd+' / '+wt+'</span><span style="color:'+col(wt?wp:null)+';font-weight:600">'+(wt?wp+"%":"—")+'</span></div></div></div></div>';
   }).join("");
   animBars(document.getElementById("sumBox"),"RS");animBars(document.getElementById("rList"),"R");
 }
@@ -593,12 +638,12 @@ function openEdit(type,id){
   ic.E=it.icon||(type==="T"?"i:pin":"i:repeat");opn.E=false;
   let h='<div class="sheet"><b>'+(type==="T"?""+T("تعديل المهمة")+"":""+T("تعديل الروتين")+"")+'</b><div class="row" style="margin-top:10px"><div id="pkE" style="flex:1 1 100%"></div><input class="name" id="en" value="'+esc(it.name)+'">';
   if(type==="T"){
-    h+='<label>'+T("الكمية")+'<input id="et" type="text" inputmode="decimal" value="'+it.target+'"></label><label>'+T("الوحدة")+'<input id="eu" value="'+esc(it.unit)+'"></label><label>'+T("كمية اليوم")+'<input id="ey" type="text" inputmode="decimal" value="'+(it.daily||0)+'"></label><label>'+T("المنجز")+'<input id="ed" type="text" inputmode="decimal" value="'+(Math.round((+it.done||0)*100)/100)+'"></label><label>'+T("كم أنجزت سابقًا؟")+'<input id="ep" type="text" inputmode="decimal" value="'+(it.prev||0)+'"></label>';
+    h+='<label>'+T("الكمية")+'<input id="et" type="text" inputmode="decimal" value="'+it.target+'"></label><label>'+T("الوحدة")+'<input id="eu" value="'+esc(it.unit)+'"></label><label>'+T("كم أنجزت سابقًا؟")+'<input id="ep" type="text" inputmode="decimal" value="'+(it.prev||0)+'"></label>';
   }else{
     edDays=it.days.slice();edMode=it.mode||"W";edMDs=(it.md||[]).slice();
     h+='<div class="chips" id="edChips"></div>';
   }
-  h+='<label>'+T("الأولوية")+prSel("epr",it.pr)+'</label>';
+  h+='<label>'+T("الأولوية")+prSel("epr",it.pr,true)+'</label>';
   h+='<button class="esm esv" onclick="saveEdit()">'+T("حفظ")+'</button><button class="ghost esm" onclick="closeEdit()">'+T("إلغاء")+'</button><button class="ghost esm" style="color:#d33;margin-inline-start:auto" onclick="confirmDel(\''+type+'\','+id+')">'+ico("i:trash","16px")+' '+T("حذف")+'</button></div></div>';
   const m=document.getElementById("modal");
   m.innerHTML=h;openM(m);
@@ -640,10 +685,10 @@ function saveEdit(){
     const rd=(id,d)=>{const r=raw(id);return r===""?d:Number(r)};
     const tg=rd("et",t.target),dn=rd("ed",+t.done||0),np=rd("ep",t.prev||0);
     if(!(tg>0)||!(dn>=0)||!(np>=0)){inApp(T("إنجازاتي"),T("أدخل أرقامًا صحيحة"));return}
-    t.name=name;t.icon=ic.E;t.target=tg;t.unit=document.getElementById("eu").value.trim();t.daily=rd("ey",0)||0;
-    const dp=np-(t.prev||0);
-    t.prev=np;if(np>0)t.prevUsed=true;
-    t.done=Math.max(0,Math.min(tg,dn+dp));
+    t.name=name;t.icon=ic.E;t.target=tg;t.unit=document.getElementById("eu").value.trim();t.daily=rd("ey",t.daily||0)||0;
+    const act=Math.max(0,dn-(t.prev||0)),npc=Math.min(np,Math.max(0,tg-act));
+    t.prev=npc;if(npc>0)t.prevUsed=true;
+    t.done=Math.max(0,Math.min(tg,npc+act));
     t.finished=t.done>=t.target;if(!t.finished)delete t.fin;
     t.pr=prRead("epr");
     save();
@@ -752,10 +797,10 @@ function renderD(){
   if(emp){document.getElementById("dSum").innerHTML=welcomeHtml();return}
   drawSum(left,total);
   document.getElementById("dR").innerHTML='<div class="head"><b>'+T("روتين اليوم")+'</b>'+reoBtn()+'</div>'+(rs.length?rs.map(r=>
-    '<div class="chk"><button class="ck'+(r.log[k]?" on":"")+'" onclick="tick('+r.id+')" aria-label="'+T("تم")+'">'+(r.log[k]?CK:"")+'</button><span class="'+(r.log[k]?"str":"")+'">'+ico(r.icon||"i:repeat")+' '+esc(r.name)+'</span>'+prIco(r.pr)+rowCtl(r.id,false)+'</div>').join(""):'<div class="sub" style="margin-top:8px">'+T("لا يوجد روتين اليوم.")+'</div>');
+    '<div class="chk"><button class="ck'+(r.log[k]?" on":"")+'" onclick="tick('+r.id+')" aria-label="'+T("تم")+'">'+(r.log[k]?CK:"")+'</button><span class="'+(r.log[k]?"str":"")+'">'+ico(r.icon||"i:repeat")+' '+prMark(r.pr,esc(r.name))+'</span>'+rowCtl(r.id,false)+'</div>').join(""):'<div class="sub" style="margin-top:8px">'+T("لا يوجد روتين اليوم.")+'</div>');
   document.getElementById("dT").innerHTML='<div class="head"><b>'+T("المهام")+'</b>'+(ts.length?treoBtn():"")+'</div>'+(ts.length?ts.map(t=>{
     const p=pct(t),rem=Math.max(0,t.target-t.done);
-    return '<div class="trow" style="margin-top:12px"><div class="head"><span style="display:flex;align-items:center;gap:10px"><button class="ck'+((t.finished||t.dk===k)?" on":"")+'" onclick="doneT('+t.id+')" aria-label="'+T("تم")+'">'+((t.finished||t.dk===k)?CK:"")+'</button><span class="'+((t.finished||t.dk===k)?"str":"")+'">'+ico(t.icon||"i:pin")+' '+esc(t.name)+'</span>'+prIco(t.pr)+tCtl(t.id)+'</span><span style="color:'+col(p)+';font-weight:600">'+p+'%</span></div><div class="bar"><div class="fill" data-k="'+t.id+'" data-to="'+p+'" style="width:'+(PP["D"+t.id]!==undefined?PP["D"+t.id]:p)+'%;background:'+col(PP["D"+t.id]!==undefined?PP["D"+t.id]:p)+'"></div></div><div class="sub">'+T("أنجزت")+' '+t.done+' '+T("من")+' '+t.target+' '+esc(t.unit)+(t.dk===k?' (+'+t.dadd+' '+T("اليوم")+')':'')+'</div>'+'</div>';
+    return '<div class="trow" style="margin-top:12px"><div class="head"><span style="display:flex;align-items:center;gap:10px"><button class="ck'+((t.finished||t.dk===k)?" on":"")+'" onclick="doneT('+t.id+')" aria-label="'+T("تم")+'">'+((t.finished||t.dk===k)?CK:"")+'</button><span class="'+((t.finished||t.dk===k)?"str":"")+'">'+ico(t.icon||"i:pin")+' '+prMark(t.pr,esc(t.name))+'</span>'+tCtl(t.id)+'</span><span style="color:'+col(p)+';font-weight:600">'+p+'%</span></div><div class="bar"><div class="fill" data-k="'+t.id+'" data-to="'+p+'" style="width:'+(PP["D"+t.id]!==undefined?PP["D"+t.id]:p)+'%;background:'+col(PP["D"+t.id]!==undefined?PP["D"+t.id]:p)+'"></div></div><div class="sub">'+T("أنجزت")+' '+t.done+' '+T("من")+' '+t.target+' '+esc(t.unit)+(t.dk===k?' (+'+t.dadd+' '+T("اليوم")+')':'')+'</div>'+'</div>';
   }).join(""):'<div class="sub" style="margin-top:8px">'+T("لا توجد مهام معلقة.")+'</div>');
   animBars(document.getElementById("dT"),"D",true);
 }
@@ -795,7 +840,7 @@ function renderS(){
   const rp=SC?Math.round(DD/SC*100):null;
   const inR=d=>!!d&&d>=ks&&d<=kt;
   const closed=tasks.filter(x=>x.finished&&inR(x.fin));
-  const touched=tasks.filter(x=>(x.hist||[]).some(h=>inR(h.d))||(x.finished&&inR(x.fin)));
+  const touched=tasks.filter(x=>(x.hist||[]).some(h=>inR(h.d))||(x.finished&&inR(x.fin))||(x.cl||[]).some(inR));
   const tp=touched.length?Math.round(touched.reduce((a,x)=>a+Math.min(100,Math.max(0,Math.round((x.done-(x.prev||0))/x.target*100))),0)/touched.length):null;
   const vals=[rp,tp].filter(v=>v!==null);
   const ov=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
@@ -819,7 +864,7 @@ function renderS(){
     const o=!!openS['T'+x.id];
     return '<div style="margin-top:12px"><div class="head sx" onclick="tgS(\'T'+x.id+'\')"><span>'+ico(x.icon||"i:pin")+' '+esc(x.name)+'</span><span style="color:var(--mute)">'+ds.size+' '+T("يوم")+' '+chv(o)+'</span></div>'+(o?'<div class="xp"><div class="sub" style="margin-top:8px">'+T("عملت عليها")+' '+ds.size+' '+T("يوم")+' '+pLbl+'</div>'+sGrid(st,en,(d,k)=>ds.has(k)?'d':(k>kt?'':'u'))+'</div>':'')+'</div>';
   }).join("");
-  document.getElementById("sTk").innerHTML='<b>'+T("المهام")+'</b><div class="meta" style="margin:10px 0 4px"><span>'+T("مهام مغلقة")+'</span><span>'+closed.length+'</span></div><div class="meta" style="margin:0 0 4px"><span>'+T("مهام عملت عليها")+'</span><span>'+touched.length+'</span></div><div class="meta" style="margin:0"><span>'+T("متوسط نسبة إنجازها")+'</span><span style="color:'+col(tp)+';font-weight:600">'+(tp===null?"—":tp+"%")+'</span></div>'+tkRows;
+  document.getElementById("sTk").innerHTML='<b>'+T("المهام")+'</b><div class="meta" style="margin:10px 0 4px"><span>'+T("مهام مغلقة")+'</span><span>'+(closed.length+tasks.reduce((a,x)=>a+(x.cl||[]).filter(inR).length,0))+'</span></div><div class="meta" style="margin:0 0 4px"><span>'+T("مهام عملت عليها")+'</span><span>'+touched.length+'</span></div><div class="meta" style="margin:0"><span>'+T("متوسط نسبة إنجازها")+'</span><span style="color:'+col(tp)+';font-weight:600">'+(tp===null?"—":tp+"%")+'</span></div>'+tkRows;
   const sorted=per.filter(x=>x.p!==null).sort((a,b)=>b.p-a.p);
   let h='<b>'+cap(T("الروتين"))+'</b>';
   if(!per.length)h+='<div class="sub" style="margin-top:8px">'+T("لا يوجد روتين بعد.")+'</div>';
@@ -1261,14 +1306,14 @@ cloudInit();
    2) الصق إعدادات المشروع مكان null.
    لو تركتها null يفضل البرنامج يشتغل زي ما هو بالظبط. */
 const FIREBASE_CONFIG={
-  projectId: "airy-hydra-gsmzh",
-  appId: "1:396092710552:web:a6a65fdb7db7bae3c8baed",
-  apiKey: "AIzaSyC67eKf55sa003mToOQcbxl7ZrFBbWqPno",
-  authDomain: "airy-hydra-gsmzh.firebaseapp.com",
-  firestoreDatabaseId: "ai-studio-072bb3e9-36a8-48f3-bbc6-6c1cdb1d094d",
-  storageBucket: "airy-hydra-gsmzh.firebasestorage.app",
-  messagingSenderId: "396092710552"
+  apiKey: "AIzaSyDXGL9wjDZ5Rs4lTb8zwWiiCgUx-QVD9-s",
+  authDomain: "enjazati-ebc1a.firebaseapp.com",
+  projectId: "enjazati-ebc1a",
+  storageBucket: "enjazati-ebc1a.firebasestorage.app",
+  messagingSenderId: "1053149613798",
+  appId: "1:1053149613798:android:1d66daf433851451323527"
 };
+/* مثال: {apiKey:"...",authDomain:"xxx.firebaseapp.com",projectId:"xxx",appId:"..."} */
 
 Object.assign(EN,{"المهام المنتهية":"Finished tasks","كم أنجزت سابقًا؟":"How much did you do before?","تعذر تسجيل الدخول بجوجل":"Google sign-in failed","تسجيل الدخول بجوجل حقيقي، وبياناتك تُحفظ وتتزامن على حسابك بين كل أجهزتك.":"Real Google sign-in. Your data is saved and synced to your account across all your devices."});
 
@@ -1280,8 +1325,7 @@ const Backend={
       const B="https://www.gstatic.com/firebasejs/10.12.2/";
       const [A,Au,Fs]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-auth.js"),import(B+"firebase-firestore.js")]);
       const app=A.initializeApp(FIREBASE_CONFIG);
-      this.Au=Au;this.Fs=Fs;this.auth=Au.getAuth(app);
-      this.fs=FIREBASE_CONFIG.firestoreDatabaseId?Fs.getFirestore(app,FIREBASE_CONFIG.firestoreDatabaseId):Fs.getFirestore(app);
+      this.Au=Au;this.Fs=Fs;this.auth=Au.getAuth(app);this.fs=Fs.getFirestore(app);
       await new Promise(r=>{const u=Au.onAuthStateChanged(this.auth,x=>{this.setU(x);u();r()})});
       this.kind="firebase";return true;
     }catch(e){return false}
@@ -1427,7 +1471,34 @@ linkListHtml=function(){
   tasks.forEach(t=>{if(t.finished&&(+t.done||0)<t.target){t.finished=false;delete t.fin;ch=true}});
   if(ch){save();render()}
 })();
-function fillPr(){[["tprw","tpr"],["rprw","rpr"]].forEach(p=>{const w=document.getElementById(p[0]);if(!w)return;const o=document.getElementById(p[1]);w.innerHTML=prSel(p[1],o?+o.value:-1)})}
+/* أنيميشن تحديث الروتين: المربعات اللي اتغيرت تعمل "نبضة" بدل ما تتبدل فجأة */
+{const _rr=renderR;
+ renderR=function(){
+  const sel="#rList .ck[onclick],#rList .sq[onclick]",idOf=e=>(e.getAttribute("onclick").match(/\((\d+)(?:,'([^']+)')?\)/)||[]).slice(1).join("_")+(e.classList.contains("sq")?"s":"c"),snap={};
+  document.querySelectorAll(sel).forEach(e=>{snap[idOf(e)]=e.classList.contains("on")});
+  _rr.apply(this,arguments);
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  document.querySelectorAll(sel).forEach(e=>{
+    const k=idOf(e),now=e.classList.contains("on");
+    if(snap[k]===undefined||snap[k]===now||!e.animate)return;
+    e.animate(now?[{transform:"scale(.6)",filter:"brightness(1.7)"},{transform:"scale(1.2)",filter:"brightness(1.3)",offset:.55},{transform:"scale(1)",filter:"brightness(1)"}]:[{transform:"scale(1.15)",opacity:.6},{transform:"scale(1)",opacity:1}],{duration:420,easing:"cubic-bezier(.22,.8,.3,1)"});
+  });
+ }}
+/* تم إلغاء التجديد اليومي: المهمة المنتهية تفضل في "المهام المنتهية". الكود ده بيسترجع أي مهمة اتجددت بالغلط */
+(function(){
+  let ch=false;
+  tasks.forEach(t=>{
+    if(t.cl&&t.cl.length){
+      if(!t.finished){
+        const act=(t.hist||[]).filter(x=>x.m).reduce((a,x)=>a+(+x.a||0),0);
+        t.finished=true;t.fin=t.cl[t.cl.length-1];t.prev=Math.max(0,t.target-act);t.done=t.target;t.prevUsed=true;
+      }
+      t.cl=[];delete t.fd;ch=true;
+    }else if(t.fd){delete t.fd;ch=true}
+  });
+  if(ch){save();render();try{renderD()}catch(e){}}
+})();
+function fillPr(){[["tprw","tpr"],["rprw","rpr"]].forEach(p=>{const w=document.getElementById(p[0]);if(!w)return;const o=document.getElementById(p[1]);w.innerHTML=prSel(p[1],o?+o.value:-1,true)})}
 {const _al=applyLang;applyLang=function(){const r=_al.apply(this,arguments);fillPr();return r}}
 fillPr();
 
