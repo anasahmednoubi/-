@@ -1317,35 +1317,183 @@ const FIREBASE_CONFIG={
 
 Object.assign(EN,{"المهام المنتهية":"Finished tasks","كم أنجزت سابقًا؟":"How much did you do before?","تعذر تسجيل الدخول بجوجل":"Google sign-in failed","تسجيل الدخول بجوجل حقيقي، وبياناتك تُحفظ وتتزامن على حسابك بين كل أجهزتك.":"Real Google sign-in. Your data is saved and synced to your account across all your devices."});
 
+function toFs(v){if(v===null||v===undefined)return{nullValue:null};if(typeof v==="boolean")return{booleanValue:v};if(typeof v==="number"){if(Number.isInteger(v))return{integerValue:String(v)};return{doubleValue:v}}if(typeof v==="string")return{stringValue:v};if(Array.isArray(v))return{arrayValue:{values:v.map(toFs)}};if(typeof v==="object"){const fields={};for(const[k,val]of Object.entries(v)){if(val!==undefined)fields[k]=toFs(val)}return{mapValue:{fields}}}return{stringValue:String(v)}}
+function fromFs(f){if(!f)return null;if("stringValue" in f)return f.stringValue;if("integerValue" in f)return parseInt(f.integerValue,10);if("doubleValue" in f)return parseFloat(f.doubleValue);if("booleanValue" in f)return f.booleanValue;if("nullValue" in f)return null;if("arrayValue" in f)return(f.arrayValue.values||[]).map(fromFs);if("mapValue" in f){const obj={};for(const[k,v]of Object.entries(f.mapValue.fields||{})){obj[k]=fromFs(v)}return obj}return null}
+
 const Backend={
   kind:"none",user:null,
   async init(){
     if(!FIREBASE_CONFIG)return false;
+    const cap=window.Capacitor;
+    const isNative=cap&&cap.isNativePlatform&&cap.isNativePlatform();
+
+    if(isNative&&cap.Plugins&&cap.Plugins.FirebaseAuthentication){
+      try{
+        const cur=await cap.Plugins.FirebaseAuthentication.getCurrentUser();
+        if(cur&&cur.user){this.setU(cur.user);this.kind="firebase"}
+      }catch(e){}
+    }
+
     try{
       const B="https://www.gstatic.com/firebasejs/10.12.2/";
       const [A,Au,Fs]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-auth.js"),import(B+"firebase-firestore.js")]);
       const app=A.initializeApp(FIREBASE_CONFIG);
       this.Au=Au;this.Fs=Fs;this.auth=Au.getAuth(app);this.fs=Fs.getFirestore(app);
-      await new Promise(r=>{const u=Au.onAuthStateChanged(this.auth,x=>{this.setU(x);u();r()})});
+      await new Promise(r=>{const u=Au.onAuthStateChanged(this.auth,x=>{if(x)this.setU(x);u();r()})});
       this.kind="firebase";return true;
-    }catch(e){return false}
-  },
-  setU(x){this.user=x?{uid:x.uid,name:x.displayName||"",email:x.email||""}:null},
-  ready(){return this.kind==="firebase"&&!!this.user},
-  async signIn(){
-    const Au=this.Au,cap=window.Capacitor;
-    if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.FirebaseAuthentication){
-      /* داخل تطبيق أندرويد/iOS: يحتاج الإضافة @capacitor-firebase/authentication */
-      const r=await cap.Plugins.FirebaseAuthentication.signInWithGoogle({skipNativeAuth:true});
-      await Au.signInWithCredential(this.auth,Au.GoogleAuthProvider.credential(r.credential.idToken));
-    }else{
-      await Au.signInWithPopup(this.auth,new Au.GoogleAuthProvider());
+    }catch(e){
+      if(isNative){this.kind="firebase";return true}
+      return false;
     }
+  },
+  setU(x){
+    this.user=x?{uid:x.uid,name:x.displayName||"",email:x.email||""}:null;
+    if(this.user){try{localStorage.setItem("enj_user",JSON.stringify(this.user))}catch(e){}}
+    else{try{localStorage.removeItem("enj_user")}catch(e){}}
+  },
+  ready(){return this.kind==="firebase"&&!!this.user},
+  async getToken(){
+    const cap=window.Capacitor;
+    if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.FirebaseAuthentication){
+      try{const r=await cap.Plugins.FirebaseAuthentication.getIdToken();if(r&&r.token)return r.token}catch(e){}
+    }
+    if(this.auth&&this.auth.currentUser){try{return await this.auth.currentUser.getIdToken()}catch(e){}}
+    return null;
+  },
+  async signIn(){
+    const cap=window.Capacitor;
+    if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.FirebaseAuthentication){
+      const plugin=cap.Plugins.FirebaseAuthentication;
+      let r=null,lastErr=null;
+      // 1. First try classic Google Play Services (useCredentialManager: false)
+      try{
+        r=await plugin.signInWithGoogle({skipNativeAuth:false,useCredentialManager:false});
+      }catch(e1){
+        console.warn("signInWithGoogle (classic) failed:", e1);
+        lastErr=e1;
+      }
+      // 2. Try with useCredentialManager: true
+      if(!r||(!r.user&&!r.credential)){
+        try{
+          r=await plugin.signInWithGoogle({skipNativeAuth:false,useCredentialManager:true});
+        }catch(e2){
+          console.warn("signInWithGoogle (credentialManager) failed:", e2);
+          lastErr=e2||lastErr;
+        }
+      }
+      // 3. Try with skipNativeAuth: true
+      if(!r||(!r.user&&!r.credential)){
+        try{
+          r=await plugin.signInWithGoogle({skipNativeAuth:true,useCredentialManager:false});
+        }catch(e3){
+          console.warn("signInWithGoogle (skipNativeAuth) failed:", e3);
+          lastErr=e3||lastErr;
+        }
+      }
+      if(!r||(!r.user&&!r.credential)){
+        throw lastErr||new Error("تعذر إتمام المصادقة مع جوجل");
+      }
+      if(r.credential&&r.credential.idToken&&this.auth&&this.Au){
+        try{await this.Au.signInWithCredential(this.auth,this.Au.GoogleAuthProvider.credential(r.credential.idToken))}catch(webErr){console.warn("Web SDK sync skipped:",webErr)}
+      }
+      const u=(this.auth&&this.auth.currentUser)||(r&&r.user)||{uid:(r.credential&&r.credential.idToken?("g_"+Date.now()):"google_user"),email:"Google"};
+      this.setU(u);return this.user;
+    }
+    if(!this.auth||!this.Au)throw new Error("auth/not-ready");
+    const prov=new this.Au.GoogleAuthProvider();
+    prov.setCustomParameters({prompt:"select_account"});
+    const res=await this.Au.signInWithPopup(this.auth,prov);
+    this.setU(res.user||this.auth.currentUser);return this.user;
+  },
+  async signUp(e,p,n){
+    const cap=window.Capacitor;
+    if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.FirebaseAuthentication){
+      const r=await cap.Plugins.FirebaseAuthentication.createUserWithEmailAndPassword({email:e,password:p});
+      if(n&&n.trim()){try{await cap.Plugins.FirebaseAuthentication.updateProfile({displayName:n.trim()})}catch(x){}}
+      if(this.auth&&this.Au){
+        try{
+          const c=await this.Au.createUserWithEmailAndPassword(this.auth,e,p);
+          if(n&&n.trim())await this.Au.updateProfile(c.user,{displayName:n.trim()});
+        }catch(x){}
+      }
+      const u=(this.auth&&this.auth.currentUser)||(r&&r.user)||{uid:r.uid||("u_"+Date.now()),email:e,displayName:n};
+      this.setU(u);return this.user;
+    }
+    if(!this.auth||!this.Au)throw new Error("auth/not-ready");
+    const c=await this.Au.createUserWithEmailAndPassword(this.auth,e,p);
+    if(n&&n.trim())await this.Au.updateProfile(c.user,{displayName:n.trim()});
     this.setU(this.auth.currentUser);return this.user;
   },
-  async signOut(){try{await this.Au.signOut(this.auth)}catch(e){}this.user=null},
-  async pull(){const s=await this.Fs.getDoc(this.Fs.doc(this.fs,"users",this.user.uid));return s.exists()?s.data():null},
-  async push(d){return this.Fs.setDoc(this.Fs.doc(this.fs,"users",this.user.uid),d)}
+  async signInEmail(e,p){
+    const cap=window.Capacitor;
+    if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.FirebaseAuthentication){
+      const r=await cap.Plugins.FirebaseAuthentication.signInWithEmailAndPassword({email:e,password:p});
+      if(this.auth&&this.Au){try{await this.Au.signInWithEmailAndPassword(this.auth,e,p)}catch(x){}}
+      const u=(this.auth&&this.auth.currentUser)||(r&&r.user)||{uid:r.uid||("u_"+Date.now()),email:e};
+      this.setU(u);return this.user;
+    }
+    if(!this.auth||!this.Au)throw new Error("auth/not-ready");
+    await this.Au.signInWithEmailAndPassword(this.auth,e,p);
+    this.setU(this.auth.currentUser);return this.user;
+  },
+  async reset(e){
+    const cap=window.Capacitor;
+    if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.FirebaseAuthentication){
+      return cap.Plugins.FirebaseAuthentication.sendPasswordResetEmail({email:e});
+    }
+    if(!this.auth||!this.Au)throw new Error("auth/not-ready");
+    return this.Au.sendPasswordResetEmail(this.auth,e);
+  },
+  async signOut(){
+    const cap=window.Capacitor;
+    if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.FirebaseAuthentication){
+      try{await cap.Plugins.FirebaseAuthentication.signOut()}catch(e){}
+    }
+    if(this.auth&&this.Au){try{await this.Au.signOut(this.auth)}catch(e){}}
+    this.setU(null);
+  },
+  async pull(){
+    if(!this.user||!this.user.uid)return null;
+    if(this.fs&&this.auth&&this.auth.currentUser){
+      try{
+        const s=await this.Fs.getDoc(this.Fs.doc(this.fs,"users",this.user.uid));
+        if(s.exists())return s.data();
+      }catch(err){console.warn("Firestore Web SDK pull error, falling back to REST:",err)}
+    }
+    const token=await this.getToken();
+    if(!token)return null;
+    try{
+      const res=await fetch("https://firestore.googleapis.com/v1/projects/"+FIREBASE_CONFIG.projectId+"/databases/(default)/documents/users/"+this.user.uid,{
+        headers:{"Authorization":"Bearer "+token}
+      });
+      if(res.status===404)return null;
+      if(!res.ok)throw new Error("Firestore REST error "+res.status);
+      const json=await res.json();
+      const out={};
+      for(const[k,v]of Object.entries(json.fields||{}))out[k]=fromFs(v);
+      return out;
+    }catch(e){console.error("Firestore pull REST failed:",e);throw e}
+  },
+  async push(d){
+    if(!this.user||!this.user.uid)throw new Error("No user");
+    if(this.fs&&this.auth&&this.auth.currentUser){
+      try{return await this.Fs.setDoc(this.Fs.doc(this.fs,"users",this.user.uid),d)}
+      catch(err){console.warn("Firestore Web SDK push error, falling back to REST:",err)}
+    }
+    const token=await this.getToken();
+    if(!token)throw new Error("No auth token");
+    try{
+      const fields={};
+      for(const[k,v]of Object.entries(d))fields[k]=toFs(v);
+      const res=await fetch("https://firestore.googleapis.com/v1/projects/"+FIREBASE_CONFIG.projectId+"/databases/(default)/documents/users/"+this.user.uid,{
+        method:"PATCH",
+        headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
+        body:JSON.stringify({fields})
+      });
+      if(!res.ok)throw new Error("Firestore REST error "+res.status);
+      return await res.json();
+    }catch(e){console.error("Firestore push REST failed:",e);throw e}
+  }
 };
 function setDb(){CS.db=Backend.ready()?Backend:null;CS.id=Backend.user?Backend.user.uid:null;if(Backend.user&&Backend.user.name)CS.name=Backend.user.name}
 
@@ -1417,28 +1565,66 @@ unLink=function(p){
 
 /* ===== صفحة الحساب داخل زر "ربط": دخول / حساب جديد / جوجل ===== */
 Object.assign(EN,{"تسجيل الدخول":"Sign in","حساب جديد":"New account","إنشاء الحساب":"Create account","البريد الإلكتروني":"Email","كلمة المرور":"Password","الاسم (اختياري)":"Name (optional)","نسيت كلمة المرور؟":"Forgot password?","أو":"or","المتابعة مع جوجل":"Continue with Google","تسجيل الخروج":"Sign out","اكتب بريدًا إلكترونيًا صحيحًا.":"Enter a valid email.","كلمة المرور 6 أحرف على الأقل.":"Password must be at least 6 characters.","أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك.":"We sent a password reset link to your email.","هذه معاينة: التسجيل الحقيقي يعمل داخل التطبيق بعد ربط Firebase.":"This is a preview: real sign-in works inside the app once Firebase is connected.","البريد أو كلمة المرور غير صحيحة":"Incorrect email or password","هذا البريد مسجّل بالفعل، سجّل الدخول بدلًا من ذلك.":"This email is already registered. Sign in instead.","كلمة المرور ضعيفة.":"Password is too weak.","تعذر الاتصال بالإنترنت.":"Couldn't connect to the internet.","تم إغلاق نافذة جوجل.":"The Google window was closed.","تعذر إتمام العملية. حاول مرة أخرى.":"Something went wrong. Try again.","محاولات كثيرة، حاول لاحقًا.":"Too many attempts. Try later."});
-Backend.signUp=async function(e,p,n){const Au=this.Au,c=await Au.createUserWithEmailAndPassword(this.auth,e,p);if(n)await Au.updateProfile(c.user,{displayName:n});this.setU(this.auth.currentUser);return this.user};
-Backend.signInEmail=async function(e,p){await this.Au.signInWithEmailAndPassword(this.auth,e,p);this.setU(this.auth.currentUser);return this.user};
-Backend.reset=function(e){return this.Au.sendPasswordResetEmail(this.auth,e)};
 const AUTH={mode:"in",e:"",p:"",n:"",err:"",info:"",busy:false};
-function aerr(c){const m={"auth/invalid-credential":"البريد أو كلمة المرور غير صحيحة","auth/wrong-password":"البريد أو كلمة المرور غير صحيحة","auth/user-not-found":"البريد أو كلمة المرور غير صحيحة","auth/email-already-in-use":"هذا البريد مسجّل بالفعل، سجّل الدخول بدلًا من ذلك.","auth/weak-password":"كلمة المرور ضعيفة.","auth/invalid-email":"اكتب بريدًا إلكترونيًا صحيحًا.","auth/network-request-failed":"تعذر الاتصال بالإنترنت.","auth/popup-closed-by-user":"تم إغلاق نافذة جوجل.","auth/too-many-requests":"محاولات كثيرة، حاول لاحقًا."};return T(m[c]||"تعذر إتمام العملية. حاول مرة أخرى.")}
+function aerr(c,op,detail){
+  const suf=detail?" ("+esc(String(detail).replace(/^Error:\s*/,'').slice(0,90))+")":"";
+  if(op==="google"){
+    if(c==="auth/popup-closed-by-user"||c==="auth/cancelled"||/cancel/i.test(detail))return T("تم إغلاق نافذة تسجيل الدخول.");
+    if(c==="auth/network-request-failed")return T("تعذر الاتصال بالإنترنت.");
+    return T("تعذر تسجيل الدخول بحساب جوجل")+suf+". "+T("يمكنك إنشاء حساب بالبريد وكلمة المرور مباشرة.");
+  }
+  if(op==="up"){
+    if(c==="auth/email-already-in-use")return T("هذا البريد مسجّل بالفعل، سجّل الدخول بدلًا من ذلك.");
+    if(c==="auth/weak-password")return T("كلمة المرور ضعيفة. اكتب 6 أحرف على الأقل.");
+    if(c==="auth/invalid-email")return T("اكتب بريدًا إلكترونيًا صحيحًا.");
+    if(c==="auth/network-request-failed")return T("تعذر الاتصال بالإنترنت.");
+    return T("تعذر إنشاء الحساب")+suf+". "+T("تأكد من صحة البيانات وحاول مرة أخرى.");
+  }
+  const m={
+    "auth/invalid-credential":"البريد أو كلمة المرور غير صحيحة، أو الحساب غير مسجّل.",
+    "auth/wrong-password":"البريد أو كلمة المرور غير صحيحة.",
+    "auth/user-not-found":"الحساب غير مسجّل. اختر 'حساب جديد' لإنشائه.",
+    "auth/email-already-in-use":"هذا البريد مسجّل بالفعل، سجّل الدخول بدلًا من ذلك.",
+    "auth/weak-password":"كلمة المرور ضعيفة.",
+    "auth/invalid-email":"اكتب بريدًا إلكترونيًا صحيحًا.",
+    "auth/network-request-failed":"تعذر الاتصال بالإنترنت.",
+    "auth/too-many-requests":"محاولات كثيرة خاطئة، حاول لاحقًا."
+  };
+  return T(m[c]||("البريد أو كلمة المرور غير صحيحة"+suf));
+}
 function aIn(k,v){AUTH[k]=v}
 function aMode(m){AUTH.mode=m;AUTH.err="";AUTH.info="";renderH()}
 function aNoFb(){if(Backend.kind=="firebase")return false;AUTH.err=T("هذه معاينة: التسجيل الحقيقي يعمل داخل التطبيق بعد ربط Firebase.");renderH();return true}
 async function afterAuth(u){setDb();if(u.name)CS.name=u.name;LNK.g=u.email||u.name||"Google";LNK.last="g";saveLnk();AUTH.p="";cloudSync().then(ok=>inApp(T("المزامنة"),T(ok?"تمت مزامنة البيانات":"المزامنة غير متاحة الآن")))}
-async function aRun(fn){AUTH.busy=true;AUTH.err="";AUTH.info="";renderH();try{await afterAuth(await fn())}catch(x){AUTH.err=aerr(x&&x.code)}AUTH.busy=false;renderH()}
+async function aRun(fn,op){
+  AUTH.busy=true;AUTH.err="";AUTH.info="";renderH();
+  try{await afterAuth(await fn())}
+  catch(x){
+    console.error("Auth action failed:",x);
+    let detail="";
+    if(x){
+      if(typeof x==="string")detail=x;
+      else if(x.message)detail=x.message;
+      else if(x.code)detail=x.code;
+    }
+    const code=(x&&(x.code||(x.message&&x.message.match(/auth\/[a-z0-9-]+/i)&&x.message.match(/auth\/[a-z0-9-]+/i)[0])))||"";
+    AUTH.err=aerr(code,op,detail);
+  }
+  AUTH.busy=false;renderH();
+}
 function aSubmit(){
   if(AUTH.busy)return;const e=AUTH.e.trim(),p=AUTH.p;
   if(!/^\S+@\S+\.\S+$/.test(e)){AUTH.err=T("اكتب بريدًا إلكترونيًا صحيحًا.");return renderH()}
   if(p.length<6){AUTH.err=T("كلمة المرور 6 أحرف على الأقل.");return renderH()}
   if(aNoFb())return;
-  aRun(()=>AUTH.mode==="up"?Backend.signUp(e,p,AUTH.n.trim()):Backend.signInEmail(e,p));
+  const isUp=AUTH.mode==="up";
+  aRun(()=>isUp?Backend.signUp(e,p,AUTH.n.trim()):Backend.signInEmail(e,p),isUp?"up":"in");
 }
-function aGoogle(){if(AUTH.busy||aNoFb())return;aRun(()=>Backend.signIn())}
+function aGoogle(){if(AUTH.busy||aNoFb())return;aRun(()=>Backend.signIn(),"google")}
 async function aReset(){
   const e=AUTH.e.trim();if(!/^\S+@\S+\.\S+$/.test(e)){AUTH.err=T("اكتب بريدًا إلكترونيًا صحيحًا.");return renderH()}
   if(aNoFb())return;
-  try{await Backend.reset(e);AUTH.err="";AUTH.info=T("أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك.")}catch(x){AUTH.err=aerr(x&&x.code)}renderH();
+  try{await Backend.reset(e);AUTH.err="";AUTH.info=T("أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك.")}catch(x){AUTH.err=aerr(x&&x.code,"reset")}renderH();
 }
 linkListHtml=function(){
   const u=Backend.user,v=LNK.g,fb=Backend.kind==="firebase";
