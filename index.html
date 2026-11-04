@@ -35,9 +35,13 @@
 :root[data-acc]{--acc:var(--ab);--accbg:color-mix(in srgb,var(--ab) 16%,var(--card))}
 @media (prefers-color-scheme:dark){:root[data-acc]:not([data-theme="light"]){--acc:color-mix(in srgb,var(--ab) 78%,#fff);--accbg:color-mix(in srgb,var(--ab) 24%,var(--card))}}
 :root[data-acc][data-theme="dark"]{--acc:color-mix(in srgb,var(--ab) 78%,#fff);--accbg:color-mix(in srgb,var(--ab) 24%,var(--card))}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ff,system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif);line-height:1.5}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-tap-highlight-color:transparent!important;-webkit-tap-highlight-color:rgba(0,0,0,0)!important;-webkit-touch-callout:none;overscroll-behavior-y:none}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent!important;-webkit-tap-highlight-color:rgba(0,0,0,0)!important;-webkit-touch-callout:none}
+:focus,:focus-visible{outline:none!important;-webkit-tap-highlight-color:transparent!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ff,system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif);line-height:1.5;-webkit-tap-highlight-color:transparent!important;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;user-select:none;-webkit-user-select:none}
+input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:text}
+button,a,input,select,textarea,.chip,.ck,.sq,.del,#nav button,#tH,[role="button"],.tab{touch-action:manipulation;-webkit-tap-highlight-color:transparent!important;-webkit-tap-highlight-color:rgba(0,0,0,0)!important;outline:none!important}
+button:focus,button:focus-visible,button:active,#nav button:focus,#nav button:focus-visible,#nav button:active{outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important}
 main,.sheet{zoom:var(--zs,1)}
 main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
 h1{font-size:24px;margin:8px 0 16px}
@@ -61,11 +65,11 @@ h1{font-size:24px;margin:8px 0 16px}
 input{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
 input.name{flex:1 1 100%}
 input.num{flex:1 1 90px}
-button{font:inherit;border:0;border-radius:10px;padding:10px 14px;background:var(--acc);color:#fff;cursor:pointer}
+button{font:inherit;border:0;border-radius:10px;padding:10px 14px;background:var(--acc);color:#fff;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent!important;outline:none!important}
 button.ghost{background:var(--track);color:var(--text)}
 .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .name-t{font-weight:600;font-size:17px}
-.del{background:none;color:var(--mute);padding:4px 8px}
+.del{background:none;color:var(--mute);padding:4px 8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent!important;outline:none!important}
 .del.dots{font-size:22px;font-weight:700;line-height:1;padding:2px 10px}
 .bar{height:20px;background:var(--track);border-radius:99px;overflow:hidden;margin:12px 0 6px}
 .fill{height:100%;background:var(--acc);border-radius:99px;position:relative}
@@ -83,10 +87,10 @@ html[dir=ltr] .fill.wf::after,html[dir=ltr] .fill.we::after{animation-name:wflow
 .empty{color:var(--mute);text-align:center;padding:30px 0}
 .done .name-t{opacity:.7}
 .tabs{display:flex;gap:6px;margin-bottom:14px}
-.tabs button{flex:1;background:var(--track);color:var(--text)}
+.tabs button{flex:1;background:var(--track);color:var(--text);touch-action:manipulation;-webkit-tap-highlight-color:transparent!important;outline:none!important}
 .tabs button.on{background:var(--acc);color:#fff}
 .tabs button{padding:10px 6px;font-size:15px}
-.tabs.main button{display:flex;align-items:center;justify-content:center;gap:6px;transition:flex .3s ease}
+.tabs.main button{display:flex;align-items:center;justify-content:center;gap:6px;transition:flex .18s cubic-bezier(.2,0,0,1),background-color .15s ease,color .15s ease,transform .1s ease;will-change:flex;touch-action:manipulation;-webkit-tap-highlight-color:transparent!important;outline:none!important}
 .tabs.main button.on{flex:2.4}
 .tabs.main .ti{font-size:20px;line-height:1}
 .tabs.main .tn{display:none;white-space:nowrap}
@@ -102,6 +106,7 @@ html[dir=ltr] .fill.wf::after,html[dir=ltr] .fill.we::after{animation-name:wflow
 .ck.on{background:var(--acc)}
 .str{text-decoration:line-through;opacity:.55}
 .dragging{box-shadow:0 6px 18px rgba(0,0,0,.25);position:relative;z-index:5;background:var(--card)}
+.drag{touch-action:none!important;-webkit-touch-callout:none}.drag *{pointer-events:none;touch-action:none}
 .hide{display:none}
 .ic{vertical-align:-.15em;flex:none}
 .ipk{display:flex;flex-wrap:wrap;gap:4px;max-height:200px;overflow-y:auto}
@@ -133,19 +138,19 @@ input,button{border-radius:8px}
 .sq b{font-size:15px;min-height:18px}
 .sq.on{background:var(--acc);color:#fff}
 .sq.tdy{border-color:var(--acc)}
-@keyframes inL{from{opacity:0;transform:translate3d(-22px,0,0)}to{opacity:1;transform:none}}
-@keyframes inR{from{opacity:0;transform:translate3d(22px,0,0)}to{opacity:1;transform:none}}
-.in-l{animation:inL .35s ease-out;will-change:transform,opacity}
-.in-r{animation:inR .35s ease-out;will-change:transform,opacity}
+@keyframes inL{from{opacity:0;transform:translate3d(-12px,0,0)}to{opacity:1;transform:none}}
+@keyframes inR{from{opacity:0;transform:translate3d(12px,0,0)}to{opacity:1;transform:none}}
+.in-l{animation:inL .18s cubic-bezier(.16,1,.3,1);will-change:transform,opacity}
+.in-r{animation:inR .18s cubic-bezier(.16,1,.3,1);will-change:transform,opacity}
 main{overflow-x:hidden}
 @media (prefers-reduced-motion:reduce){.in-l,.in-r{animation:none}}
 .sq.off{opacity:.35;cursor:default}
 main{padding-bottom:120px}
-#bar{position:fixed;left:0;right:0;bottom:0;z-index:20;max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:8px 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:20;max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:8px 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none;transform:translateZ(0);-webkit-transform:translateZ(0)}
 #bar>*{pointer-events:auto}
-#nav{contain:layout style;flex:1;margin:0;padding:5px;gap:4px;background:var(--card);border:1.5px solid var(--line);border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
-#nav button{border-radius:999px}
-#tH{flex:none;width:54px;height:54px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--card);color:var(--text);border:1.5px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.2);transition:background-color .3s,color .3s,transform .2s}
+#nav{contain:layout style;flex:1;margin:0;padding:5px;gap:4px;background:var(--card);border:1.5px solid var(--line);border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateZ(0);-webkit-transform:translateZ(0)}
+#nav button{border-radius:999px;touch-action:manipulation;-webkit-tap-highlight-color:transparent!important;-webkit-tap-highlight-color:rgba(0,0,0,0)!important;outline:none!important}
+#tH{flex:none;width:54px;height:54px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--card);color:var(--text);border:1.5px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.2);transition:background-color .2s,color .2s,transform .15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent!important;outline:none!important}
 #tH.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 #tH:active,#nav button:active{transform:scale(.94)}
 #addBtn,#rAdd,.chip,.row>button,.sheet button{border-radius:999px;transition:transform .15s ease,background-color .25s ease,opacity .2s ease}
@@ -250,6 +255,7 @@ html.tbtop #tour{bottom:auto!important;top:calc(150px + env(safe-area-inset-top,
     <input class="num" id="t" type="number" min="1" inputmode="numeric" placeholder="الكمية (مثلًا 20)">
     <input class="num" id="u" placeholder="الوحدة (صفحة…)">
     <input class="num" id="td" type="number" min="0" inputmode="numeric" placeholder="كمية اليوم (مثلًا 5)">
+    <div id="tdChips" style="flex:1 1 100%"></div>
     <span id="tprw" style="flex:1 1 90px;display:flex"></span><button id="addBtn">إضافة</button>
   </div>
 </div>
@@ -338,18 +344,34 @@ let animOn=false,lastT=0;
 function kick(){if(!animOn){animOn=true;lastT=performance.now();requestAnimationFrame(loop)}}
 function loop(now){
   const dt=Math.min(64,Math.max(1,now-lastT));lastT=now;
-  const k=1-Math.exp(-dt/340);let busy=false;
+  const k=1-Math.exp(-dt/260);let busy=false;
   if(SUM.to!==null&&SUM.v!==SUM.to){
     const d=SUM.to-SUM.v;
-    if(Math.abs(d)<.15)SUM.v=SUM.to;else{SUM.v+=d*k;busy=true}
-    const el=document.getElementById("dSum");
-    if(el&&el.offsetParent!==null)el.innerHTML=ringD(SUM.l,SUM.t,SUM.v);
+    if(Math.abs(d)<.25)SUM.v=SUM.to;else{SUM.v+=d*k;busy=true}
+    const pc=Math.round(SUM.v);
+    const pct=document.getElementById("dSumPct");
+    if(pct)pct.textContent=pc+"%";
+    const arc=document.getElementById("dSumArc");
+    if(arc){const g=pbs==="gauge",C=2*Math.PI*62,L=g?C*.75:C;arc.setAttribute("stroke-dasharray",(L*SUM.v/100)+" "+C)}
+    const harc=document.getElementById("dSumHalfArc");
+    if(harc){const Hh=Math.PI*72;harc.setAttribute("stroke-dasharray",(Hh*SUM.v/100)+" "+Hh)}
+    const bfill=document.getElementById("dSumBarFill");
+    if(bfill)bfill.style.width=SUM.v.toFixed(1)+"%";
+    if(!arc&&!harc&&!bfill){
+      const el=document.getElementById("dSum");
+      if(el&&el.offsetParent!==null)el.innerHTML=ringD(SUM.l,SUM.t,SUM.v);
+    }
   }
   for(const key in PT){
     const to=PT[key];let v=PP[key];if(v===undefined)v=to;
-    if(v!==to){const d=to-v;if(Math.abs(d)<.15)v=to;else{v+=d*k;busy=true}PP[key]=v}
+    if(v!==to){
+      const d=to-v;
+      if(Math.abs(d)<.25)v=to;else{v+=d*k;busy=true}
+      PP[key]=v;
+      const el=document.querySelector('.fill[data-pf="'+key.charAt(0)+'"][data-k="'+key.slice(1)+'"]');
+      if(el){el.style.width=v+"%";el.style.background=col(v)}
+    }
   }
-  document.querySelectorAll(".fill[data-pf]").forEach(e=>{const key=e.dataset.pf+e.dataset.k,v=PP[key];if(v!==undefined){e.style.width=v+"%";e.style.background=col(v);const tg=PT[key],mv=tg!==undefined&&tg!==v;e.classList.toggle("wf",mv&&tg>v);e.classList.toggle("we",mv&&tg<v)}});
   if(busy)requestAnimationFrame(loop);else animOn=false;
 }
 function animBars(box,pf,defer){
@@ -410,6 +432,7 @@ function render(){
     const p=pct(t),K=key(today());
     return `<div class="task ${t.finished?"done":""}">
       <div class="head"><span class="name-t" style="display:flex;align-items:center;gap:10px"><button class="ck${(t.finished||t.dk===K)?" on":""}" onclick="doneT(${t.id})" aria-label="${T("تم")}">${(t.finished||t.dk===K)?CK:""}</button><span class="${(t.finished||t.dk===K)?"str":""}">${ico(t.icon||"i:pin")} ${prMark(t.pr,esc(t.name))}</span></span><span>${tCtl(t.id)}<button class="del" onclick="confirmDel('T',${t.id})" aria-label="${T("حذف")}">${ico("i:x")}</button></span></div>
+      ${t.days&&t.days.length?`<div class="sub">${T("أيام المهمة:")} ${tdTxt(t)}</div>`:""}
       <div class="bar"><div class="fill" data-k="${t.id}" data-to="${p}" style="width:${PP["T"+t.id]!==undefined?PP["T"+t.id]:p}%;background:${col(PP["T"+t.id]!==undefined?PP["T"+t.id]:p)}"></div></div>
       <div class="meta"><span>${t.done} / ${t.target} ${esc(t.unit)}</span><span style="color:${col(p)};font-weight:600">${p}%</span></div>
       ${(t.finished||t.prevUsed)?"":`
@@ -417,13 +440,27 @@ function render(){
         <input class="num" id="a${t.id}" type="number" min="1" inputmode="numeric" placeholder="${T("كم أنجزت سابقًا؟")}">
         <button onclick="addAmt(${t.id})">${T("تسجيل")}</button>
       </div>`}
-    </div>`};const A=tl.filter(t=>!t.finished).sort((a,b)=>prn(b.pr)-prn(a.pr)),F=tl.filter(t=>t.finished);return A.map(card).join("")+(F.length?'<div class="task" style="margin-top:16px"><div class="head" style="margin-bottom:6px"><b>'+T("المهام المنتهية")+' ('+F.length+')</b></div>'+F.map(card).join("")+'</div>':"")})();animBars(document.getElementById("list"),"T");
+    </div>`};const A=tl.filter(t=>!t.finished),F=tl.filter(t=>t.finished);return A.map(card).join("")+(F.length?'<div class="task" style="margin-top:16px"><div class="head" style="margin-bottom:6px"><b>'+T("المهام المنتهية")+' ('+F.length+')</b></div>'+F.map(card).join("")+'</div>':"")})();animBars(document.getElementById("list"),"T");
 }
+Object.assign(EN,{"أيام المهمة":"Task days","اتركها فارغة = كل يوم":"leave empty = every day","أيام المهمة:":"Days:"});
+let tDays=[],edTDays=[];
+function tdHtml(sd,all,tg){return '<div class="sub" style="margin:2px 2px 6px">'+T("أيام المهمة")+' ('+T("اتركها فارغة = كل يوم")+')</div><div class="dgrid g4"><button class="chip '+(sd.length===7?"on":"")+'" onclick="'+all+'()">'+T("كل يوم")+'</button>'+ORDER.map(d=>'<button class="chip '+(sd.includes(d)?"on":"")+'" onclick="'+tg+'('+d+')">'+DN[d]+'</button>').join("")+'</div>'}
+function drawTD(){const e=document.getElementById("tdChips");if(e)e.innerHTML=tdHtml(tDays,"tdAll","tdTog")}
+function tdAll(){tDays=tDays.length===7?[]:[0,1,2,3,4,5,6];drawTD()}
+function tdTog(d){tDays=tDays.includes(d)?tDays.filter(x=>x!==d):tDays.concat(d);drawTD()}
+function drawEDT(){const e=document.getElementById("edTD");if(e)e.innerHTML=tdHtml(edTDays,"edTdAll","edTdTog")}
+function edTdAll(){edTDays=edTDays.length===7?[]:[0,1,2,3,4,5,6];drawEDT()}
+function edTdTog(d){edTDays=edTDays.includes(d)?edTDays.filter(x=>x!==d):edTDays.concat(d);drawEDT()}
+function ndays(a){a=ORDER.filter(d=>a.includes(d));return a.length&&a.length<7?a:null}
+function tdue(t,d){return !(t.days&&t.days.length)||t.days.includes(d.getDay())||t.dk===key(d)}
+function tdTxt(t){return ORDER.filter(d=>t.days.includes(d)).map(d=>DN[d]).join(T("، "))}
 function addTask(){
   const n=document.getElementById("n"),tt=document.getElementById("t"),u=document.getElementById("u");
   const target=parseFloat(tt.value);
   if(!n.value.trim()||!(target>0))return;
-  tasks.unshift({id:Date.now(),icon:ic.T,name:n.value.trim(),target:target,unit:u.value.trim(),daily:parseFloat(document.getElementById("td").value)||0,done:0,finished:false,pr:prRead("tpr")});
+  const nt={id:Date.now(),icon:ic.T,name:n.value.trim(),target:target,unit:u.value.trim(),daily:parseFloat(document.getElementById("td").value)||0,done:0,finished:false,pr:prRead("tpr")};
+  {const dd=ndays(tDays);if(dd)nt.days=dd}
+  tasks.unshift(nt);tDays=[];drawTD();
   n.value="";tt.value="";u.value="";document.getElementById("td").value="";{const q=document.getElementById("tpr");if(q)q.value="-1"}save();render();
 }
 function addAmt(id){
@@ -569,7 +606,7 @@ function renderR(){
   const SC=st.reduce((a,x)=>a+x.s.sc,0),DNN=st.reduce((a,x)=>a+x.s.dn,0);
   const tp=SC?Math.round(DNN/SC*100):null;
   const fq=((document.getElementById("qR")||{}).value||"").trim().toLowerCase();
-  const sl=(fq?st.filter(x=>String(x.r.name).toLowerCase().includes(fq)):st).slice().sort((a,b)=>prn(b.r.pr)-prn(a.r.pr));
+  const sl=(fq?st.filter(x=>String(x.r.name).toLowerCase().includes(fq)):st).slice();
   document.getElementById("sumBox").innerHTML='<div class="sub">'+T("نسبة إنجازك")+' '+(period==="M"?""+T("خلال الشهر")+"":""+T("خلال الأسبوع")+"")+'</div><div class="big" style="color:'+col(tp)+'">'+(tp===null?"—":tp+"%")+'</div><div class="bar"><div class="fill" data-k="all" data-to="'+(tp||0)+'" style="width:'+(PP["RSall"]!==undefined?PP["RSall"]:(tp||0))+'%;background:'+col(PP["RSall"]!==undefined?PP["RSall"]:tp)+'"></div></div><div class="sub">'+DNN+' '+T("من")+' '+SC+' '+T("مرة تم إنجازها")+'</div>';
   document.getElementById("rList").innerHTML=(st.length?'<div class="head" style="margin:4px 2px 8px"><b>'+T("جميع الروتينات")+'</b>'+reoBtn()+'</div>':'')+(fq&&!sl.length?'<div class="empty">'+T("لا توجد نتائج مطابقة")+'</div>':'')+sl.map(x=>{
     const r=x.r,s=x.s,days=schedTxt(r),wk7=ORDER.map((dw,i)=>{const d=wkStart();d.setDate(d.getDate()+i);return d}).filter(d=>due(r,d)),wt=wk7.length,wd=wk7.filter(d=>r.log[key(d)]).length,wp=wt?Math.round(wd/wt*100):0;
@@ -641,6 +678,7 @@ function openEdit(type,id){
   let h='<div class="sheet"><b>'+(type==="T"?""+T("تعديل المهمة")+"":""+T("تعديل الروتين")+"")+'</b><div class="row" style="margin-top:10px"><div id="pkE" style="flex:1 1 100%"></div><input class="name" id="en" value="'+esc(it.name)+'">';
   if(type==="T"){
     h+='<label>'+T("الكمية")+'<input id="et" type="text" inputmode="decimal" value="'+it.target+'"></label><label>'+T("الوحدة")+'<input id="eu" value="'+esc(it.unit)+'"></label><label>'+T("كم أنجزت سابقًا؟")+'<input id="ep" type="text" inputmode="decimal" value="'+(it.prev||0)+'"></label>';
+    h+='<div id="edTD" style="flex:1 1 100%"></div>';edTDays=(it.days||[]).slice();
   }else{
     edDays=it.days.slice();edMode=it.mode||"W";edMDs=(it.md||[]).slice();
     h+='<div class="chips" id="edChips"></div>';
@@ -650,7 +688,7 @@ function openEdit(type,id){
   const m=document.getElementById("modal");
   m.innerHTML=h;openM(m);
   drawPick("E");
-  if(type==="R")drawEDays();
+  if(type==="R")drawEDays();else drawEDT();
 }
 let edMode="W",edMDs=[];
 function drawEDays(){document.getElementById("edChips").innerHTML=chipsHtml(edMode,edDays,edMDs,{set:"setEM",all:"edAll",tw:"edTog",tm:"edMD"})}
@@ -693,6 +731,7 @@ function saveEdit(){
     t.done=Math.max(0,Math.min(tg,npc+act));
     t.finished=t.done>=t.target;if(!t.finished)delete t.fin;
     t.pr=prRead("epr");
+    {const dd=ndays(edTDays);if(dd)t.days=dd;else delete t.days}
     save();
   }else{
     if(!(edMode==="M"?edMDs.length:edDays.length))return;
@@ -735,7 +774,7 @@ function ringD(left,total,p){
   const grad=(x2,y2)=>'<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="'+x2+'" y2="'+y2+'"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs>';
   const mid=fin?'<div style="font-size:30px;line-height:1;color:'+c2+'">'+ico("i:sparkles")+'</div><div style="font-size:14px;font-weight:700;margin-top:6px">'+T("أنجزت كل شيء")+'</div>'
     :'<div style="font-size:46px;font-weight:800;line-height:1;color:'+c2+';font-variant-numeric:tabular-nums">'+left+'</div><div class="sub" style="font-size:12px;margin-top:2px">'+T("المتبقي من")+' '+total+'</div>';
-  const head='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span style="width:34px;height:34px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:none">'+ico("i:activity","18px")+'</span><b style="font-size:15px">'+T("إنجازك اليوم")+'</b></div><span style="flex:none;padding:5px 12px;border-radius:999px;background:'+tint+';color:'+c2+';font-weight:700;font-size:14px;font-variant-numeric:tabular-nums">'+pc+'%</span></div>';
+  const head='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span style="width:34px;height:34px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:none">'+ico("i:activity","18px")+'</span><b style="font-size:15px">'+T("إنجازك اليوم")+'</b></div><span id="dSumPct" style="flex:none;padding:5px 12px;border-radius:999px;background:'+tint+';color:'+c2+';font-weight:700;font-size:14px;font-variant-numeric:tabular-nums">'+pc+'%</span></div>';
   const st=(n,l,cl)=>'<div style="flex:1;text-align:center"><div style="font-size:20px;font-weight:700;color:'+cl+';font-variant-numeric:tabular-nums">'+n+'</div><div class="sub" style="font-size:12px;margin-top:2px">'+l+'</div></div>';
   const sep='<span style="width:1px;height:28px;background:var(--line);flex:none"></span>';
   const foot='<div style="display:flex;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)">'+st(done,T("المنجز"),c2)+sep+st(left,T("المتبقي"),"var(--text)")+sep+st(total,T("الإجمالي"),"var(--text)")+'</div>';
@@ -743,12 +782,12 @@ function ringD(left,total,p){
   let inner;
   if(pbs==="gauge"||pbs==="ring"){
     const g=pbs==="gauge",L=g?C*.75:C,pl=L*pcf/100;
-    inner='<div style="position:relative;width:168px;height:'+(g?148:168)+'px;margin:0 auto"><svg width="168" height="168" viewBox="0 0 150 150" style="position:absolute;top:0;left:0;transform:rotate('+(g?135:-90)+'deg)">'+grad(1,1)+'<circle cx="75" cy="75" r="62" fill="none" stroke="var(--track)" stroke-width="13" stroke-linecap="round" stroke-dasharray="'+L+' '+C+'"/><circle cx="75" cy="75" r="62" fill="none" stroke="url(#'+gid+')" stroke-width="13" stroke-linecap="'+(pc>0?"round":"butt")+'" stroke-dasharray="'+pl+' '+C+'" style="transition:stroke-dasharray .6s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px '+glow+')"/></svg><div style="position:absolute;top:0;left:0;width:168px;height:168px;display:flex;flex-direction:column;align-items:center;justify-content:center">'+mid+'</div></div>';
+    inner='<div style="position:relative;width:168px;height:'+(g?148:168)+'px;margin:0 auto"><svg width="168" height="168" viewBox="0 0 150 150" style="position:absolute;top:0;left:0;transform:rotate('+(g?135:-90)+'deg)">'+grad(1,1)+'<circle cx="75" cy="75" r="62" fill="none" stroke="var(--track)" stroke-width="13" stroke-linecap="round" stroke-dasharray="'+L+' '+C+'"/><circle id="dSumArc" cx="75" cy="75" r="62" fill="none" stroke="url(#'+gid+')" stroke-width="13" stroke-linecap="'+(pc>0?"round":"butt")+'" stroke-dasharray="'+pl+' '+C+'" style="transition:stroke-dasharray .6s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px '+glow+')"/></svg><div style="position:absolute;top:0;left:0;width:168px;height:168px;display:flex;flex-direction:column;align-items:center;justify-content:center">'+mid+'</div></div>';
   }else if(pbs==="half"){
     const Hh=Math.PI*72,pl=Hh*pcf/100;
-    inner='<div style="position:relative;width:190px;height:112px;margin:0 auto"><svg width="190" height="112" viewBox="0 0 170 100" style="position:absolute;top:0;left:0">'+grad(1,0)+'<path d="M13 88A72 72 0 0 1 157 88" fill="none" stroke="var(--track)" stroke-width="13" stroke-linecap="round"/><path d="M13 88A72 72 0 0 1 157 88" fill="none" stroke="url(#'+gid+')" stroke-width="13" stroke-linecap="'+(pc>0?"round":"butt")+'" stroke-dasharray="'+pl+' '+Hh+'" style="transition:stroke-dasharray .6s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px '+glow+')"/></svg><div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center">'+mid+'</div></div>';
+    inner='<div style="position:relative;width:190px;height:112px;margin:0 auto"><svg width="190" height="112" viewBox="0 0 170 100" style="position:absolute;top:0;left:0">'+grad(1,0)+'<path d="M13 88A72 72 0 0 1 157 88" fill="none" stroke="var(--track)" stroke-width="13" stroke-linecap="round"/><path id="dSumHalfArc" d="M13 88A72 72 0 0 1 157 88" fill="none" stroke="url(#'+gid+')" stroke-width="13" stroke-linecap="'+(pc>0?"round":"butt")+'" stroke-dasharray="'+pl+' '+Hh+'" style="transition:stroke-dasharray .6s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px '+glow+')"/></svg><div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center">'+mid+'</div></div>';
   }else if(pbs==="bar"){
-    inner=big+'<div style="height:14px;border-radius:99px;background:var(--track);overflow:hidden"><div style="height:100%;width:'+pcf.toFixed(2)+'%;background:linear-gradient(90deg,'+c1+','+c2+');border-radius:99px;box-shadow:0 0 10px '+glow+';transition:width .6s cubic-bezier(.4,0,.2,1)"></div></div>';
+    inner=big+'<div style="height:14px;border-radius:99px;background:var(--track);overflow:hidden"><div id="dSumBarFill" style="height:100%;width:'+pcf.toFixed(2)+'%;background:linear-gradient(90deg,'+c1+','+c2+');border-radius:99px;box-shadow:0 0 10px '+glow+';transition:width .6s cubic-bezier(.4,0,.2,1)"></div></div>';
   }else{
     const n=Math.min(total,24),pf=pcf/100*n,mv=SUM.to!==null&&Math.abs(SUM.to-pcf)>.15,cls=mv?(SUM.to>pcf?" wf":" we"):"",ad=-Math.round(performance.now()%1600)+"ms";
     inner=big+'<div style="display:flex;gap:4px">'+Array.from({length:n},(_,i)=>{const w=Math.max(0,Math.min(1,pf-i));return '<span style="flex:1;height:14px;border-radius:5px;background:var(--track);overflow:hidden;display:block"><span class="fill'+cls+'" style="display:block;width:'+(w*100).toFixed(1)+'%;height:100%;border-radius:5px;background:linear-gradient(135deg,'+c1+','+c2+');--ad:'+ad+'"></span></span>'}).join("")+'</div>';
@@ -786,8 +825,8 @@ function welcomeHtml(){
 }
 function renderD(){
   const dow=today().getDay(),k=key(today());
-  const rs=routines.filter(r=>due(r,today())).sort((a,b)=>prn(b.pr)-prn(a.pr));
-  const ts=tasks.filter(t=>!t.finished||t.fin===k).sort((a,b)=>prn(b.pr)-prn(a.pr));
+  const rs=routines.filter(r=>due(r,today()));
+  const ts=tasks.filter(t=>(!t.finished||t.fin===k)&&tdue(t,today()));
   const left=rs.filter(r=>!r.log[k]).length+ts.filter(t=>!(t.finished||t.dk===k)).length;
   const total=rs.length+ts.length;
   if(document.getElementById("dSum").offsetParent!==null){
@@ -807,7 +846,7 @@ function renderD(){
   animBars(document.getElementById("dT"),"D",true);
 }
 renderD();
-drawChips();renderR();
+drawChips();drawTD();renderR();
 let sp="W";
 function sStart(p){
   const t=today();
@@ -924,6 +963,8 @@ function endDrag(){
   if(isT){save();render();renderD()}else{saveR();renderR()}
 }
 document.addEventListener("pointerup",endDrag);
+document.addEventListener("touchmove",function(e){if(dg&&e.cancelable)e.preventDefault()},{passive:false});
+document.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest(".drag"))e.preventDefault()});
 document.addEventListener("pointercancel",endDrag);
 function perS(p){
   sp=p;
