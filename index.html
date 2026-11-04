@@ -1282,7 +1282,29 @@ function renderH(){
   pH.innerHTML=
   '<div class="task"><div style="display:flex;align-items:center;gap:12px"><div id="avN" style="width:54px;height:54px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex:none">'+avHtml()+'</div><div style="flex:1;min-width:0">'+greetHtml()+'<div class="sub" style="margin-bottom:4px;overflow-wrap:anywhere">'+accLine()+'</div>'+((isLinked()&&CS.name)?'':'<input style="width:100%" placeholder="'+T("اسمك")+'" value="'+esc(prof.name)+'" oninput="setName(this.value)">')+'</div></div><div class="sub" style="margin-top:10px">'+tasks.length+' '+T("مهمة")+' • '+routines.length+' '+T("روتين")+' — '+T("بياناتك محفوظة على جهازك فقط.")+'</div></div>'+
   '<div class="task"><b>'+T("الإعدادات")+'</b>'+row("font","i:pen",T("الخط"),"")+row("theme","i:palette",T("المظهر"),"")+row("notif","i:bell",T("الإشعارات"),"")+row("link","i:link",T("ربط"),"")+row("lang","i:globe",T("اللغة"),lang==="en"?"English":"العربية")+'<div style="margin-top:14px"><button class="ghost" style="width:100%" onclick="tourReset()">'+T("إعادة الجولة التعريفية")+'</button></div><div style="margin-top:10px"><button class="ghost" style="width:100%;color:#d33" onclick="askWipe()">'+T("مسح جميع البيانات")+'</button></div></div>'+
-  '<div class="task" style="text-align:center"><div class="sub" style="margin-bottom:8px">'+T("قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ")+'</div><div style="font-size:19px;font-weight:700;line-height:1.7;color:var(--acc)">«'+T("أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ")+'»</div><div class="sub" style="margin-top:10px">'+T("مُتَّفَقٌ عَلَيْهِ")+'</div></div>'+'<div class="task"><b>'+T("عن التطبيق")+'</b><div class="sub" style="margin-top:8px">'+T("إنجازاتي")+' — '+T("تطبيق بسيط لتنظيم المهام والروتين اليومي ومتابعة إنجازك.")+'</div><div class="sub" style="margin-top:4px">'+T("الإصدار")+' 1.0</div></div>';
+  '<div class="task" style="text-align:center"><div class="sub" style="margin-bottom:8px">'+T("قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ")+'</div><div style="font-size:19px;font-weight:700;line-height:1.7;color:var(--acc)">«'+T("أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ")+'»</div><div class="sub" style="margin-top:10px">'+T("مُتَّفَقٌ عَلَيْهِ")+'</div></div>'+'<div class="task"><b>'+T("عن التطبيق")+'</b><div class="sub" style="margin-top:8px">'+T("إنجازاتي")+' — '+T("تطبيق بسيط لتنظيم المهام والروتين اليومي ومتابعة إنجازك.")+'</div><div class="sub" style="margin-top:4px">'+T("الإصدار")+' 1.0</div><div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div class="sub" style="font-size:13.5px;line-height:1.6;color:var(--text)">'+T("لو عندك أي اقتراحات، لا تتردد في التواصل معي:")+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap"><a href="mailto:anasahmednoubi@gmail.com" class="chip on" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;direction:ltr;font-family:inherit;font-size:13.5px;padding:7px 12px;font-weight:600">'+ico("i:mail","14px")+' anasahmednoubi@gmail.com</a><button class="ghost" style="padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;font-family:inherit" onclick="copyContactMail(this)">'+ico("i:copy","13px")+' <span>'+T("نسخ البريد")+'</span></button></div></div></div>';
+}
+ICO.mail='<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>';
+ICO.copy='<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>';
+Object.assign(EN,{
+  "لو عندك أي اقتراحات، لا تتردد في التواصل معي:":"If you have any suggestions, feel free to reach out:",
+  "نسخ البريد":"Copy email",
+  "تم النسخ":"Copied"
+});
+function copyContactMail(btn){
+  const email="anasahmednoubi@gmail.com";
+  const ok=()=>{
+    if(btn){
+      const prev=btn.innerHTML;
+      btn.innerHTML=ico("i:check","13px")+' <span>'+T("تم النسخ")+'</span>';
+      setTimeout(()=>{btn.innerHTML=prev},2000);
+    }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(email).then(ok).catch(()=>{inApp(T("إنجازاتي"),email)});
+  }else{
+    inApp(T("إنجازاتي"),email);
+  }
 }
 
 {const bar=document.createElement("div");bar.id="bar";
