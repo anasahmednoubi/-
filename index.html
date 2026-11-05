@@ -1378,18 +1378,123 @@ function renderH(){
   }
   const row=(k,ic,lb,v)=>'<button class="ghost" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:12px 14px" onclick="setSub(\''+k+'\')"><span style="display:flex;align-items:center;gap:10px">'+ico(ic,"20px")+'<span>'+lb+'</span></span><span style="display:flex;align-items:center;gap:6px;color:var(--mute);font-size:14px">'+v+chev(fw)+'</span></button>';
   const thL={auto:"تلقائي",light:"فاتح",dark:"داكن"}[th]||"تلقائي";
+  const shareCard='<div class="task" style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(124,58,237,.03));border:1px solid rgba(124,58,237,.3)"><div style="min-width:0"><div style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;color:var(--text)">'+ico("i:share","18px")+' <span>'+T("مشاركة التطبيق مع الأصدقاء")+'</span></div><div class="sub" style="margin-top:4px">'+T("شارك إنجازاتي مع من تحب لتبدأوا رحلة الإنجاز معًا.")+'</div></div><button style="flex:none;padding:8px 16px;font-size:13.5px;display:inline-flex;align-items:center;gap:6px" onclick="shareApp()">'+ico("i:share","15px")+' <span>'+T("مشاركة")+'</span></button></div>';
   pH.innerHTML=
   '<div class="task"><div style="display:flex;align-items:center;gap:12px"><div id="avN" style="width:54px;height:54px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex:none">'+avHtml()+'</div><div style="flex:1;min-width:0">'+greetHtml()+'<div class="sub" style="margin-bottom:4px;overflow-wrap:anywhere">'+accLine()+'</div>'+((isLinked()&&CS.name)?'':'<input style="width:100%" placeholder="'+T("اسمك")+'" value="'+esc(prof.name)+'" oninput="setName(this.value)">')+'</div></div><div class="sub" style="margin-top:10px">'+tasks.length+' '+T("مهمة")+' • '+routines.length+' '+T("روتين")+' — '+T("بياناتك محفوظة على جهازك فقط.")+'</div></div>'+
   '<div class="task"><b>'+T("الإعدادات")+'</b>'+row("font","i:pen",T("الخط"),"")+row("theme","i:palette",T("المظهر"),"")+row("notif","i:bell",T("الإشعارات"),"")+row("link","i:link",T("ربط"),"")+row("lang","i:globe",T("اللغة"),lang==="en"?"English":"العربية")+'<div style="margin-top:14px"><button class="ghost" style="width:100%" onclick="tourReset()">'+T("إعادة الجولة التعريفية")+'</button></div><div style="margin-top:10px"><button class="ghost" style="width:100%;color:#d33" onclick="askWipe()">'+T("مسح جميع البيانات")+'</button></div></div>'+
-  '<div class="task" style="text-align:center"><div class="sub" style="margin-bottom:8px">'+T("قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ")+'</div><div style="font-size:19px;font-weight:700;line-height:1.7;color:var(--acc)">«'+T("أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ")+'»</div><div class="sub" style="margin-top:10px">'+T("مُتَّفَقٌ عَلَيْهِ")+'</div></div>'+'<div class="task"><b>'+T("عن التطبيق")+'</b><div class="sub" style="margin-top:8px">'+T("إنجازاتي")+' — '+T("تطبيق بسيط لتنظيم المهام والروتين اليومي ومتابعة إنجازك.")+'</div><div class="sub" style="margin-top:4px">'+T("الإصدار")+' 1.0</div><div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div class="sub" style="font-size:13.5px;line-height:1.6;color:var(--text)">'+T("لو عندك أي اقتراحات، لا تتردد في التواصل معي:")+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap"><a href="mailto:anasahmednoubi@gmail.com" class="chip on" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;direction:ltr;font-family:inherit;font-size:13.5px;padding:7px 12px;font-weight:600">'+ico("i:mail","14px")+' anasahmednoubi@gmail.com</a><button class="ghost" style="padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;font-family:inherit" onclick="copyContactMail(this)">'+ico("i:copy","13px")+' <span>'+T("نسخ البريد")+'</span></button></div></div></div>';
+  '<div class="task" style="text-align:center"><div class="sub" style="margin-bottom:8px">'+T("قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ")+'</div><div style="font-size:19px;font-weight:700;line-height:1.7;color:var(--acc)">«'+T("أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ")+'»</div><div class="sub" style="margin-top:10px">'+T("مُتَّفَقٌ عَلَيْهِ")+'</div></div>'+
+  shareCard+
+  '<div class="task"><b>'+T("عن التطبيق")+'</b><div class="sub" style="margin-top:8px">'+T("إنجازاتي")+' — '+T("تطبيق بسيط لتنظيم المهام والروتين اليومي ومتابعة إنجازك.")+'</div>'
+  +'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap"><div class="sub" style="margin:0">'+T("الإصدار")+' '+CURRENT_APP_VERSION+(UPDATE_INFO?' <span style="color:var(--acc);font-weight:700">('+T("يتوفر تحديث")+')</span>':'')+'</div><button class="ghost" style="padding:5px 12px;font-size:12px;display:inline-flex;align-items:center;gap:5px" onclick="checkAppUpdate(true)">'+ico("i:refresh","13px")+' <span>'+(CHECKING_UPDATE?T("جارٍ الفحص…"):T("التحقق من التحديثات"))+'</span></button></div>'
+  +(UPDATE_INFO?('<div style="margin-top:10px;background:var(--accbg);border:1px solid var(--acc);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:13px;font-weight:600;color:var(--text)">🎉 '+T("يتوفر إصدار جديد:")+' '+esc(UPDATE_INFO.version)+'</div><button class="chip on" style="font-size:12px;padding:5px 10px" onclick="showUpdateModal(UPDATE_INFO)">'+T("عرض التحديث")+'</button></div>'):'')
+  +'<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div class="sub" style="font-size:13.5px;line-height:1.6;color:var(--text)">'+T("لو عندك أي اقتراحات، لا تتردد في التواصل معي:")+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap"><a href="mailto:anasahmednoubi@gmail.com" class="chip on" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;direction:ltr;font-family:inherit;font-size:13.5px;padding:7px 12px;font-weight:600">'+ico("i:mail","14px")+' anasahmednoubi@gmail.com</a><button class="ghost" style="padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;font-family:inherit" onclick="copyContactMail(this)">'+ico("i:copy","13px")+' <span>'+T("نسخ البريد")+'</span></button></div></div></div>';
+}
+const CURRENT_APP_VERSION="1.0.0";
+let UPDATE_INFO=null,CHECKING_UPDATE=false;
+function compareVersions(v1,v2){
+  const p1=String(v1).split('.').map(n=>parseInt(n,10)||0),p2=String(v2).split('.').map(n=>parseInt(n,10)||0),len=Math.max(p1.length,p2.length);
+  for(let i=0;i<len;i++){const a=p1[i]||0,b=p2[i]||0;if(a>b)return 1;if(a<b)return -1}
+  return 0;
+}
+async function checkAppUpdate(manual){
+  if(CHECKING_UPDATE)return;
+  CHECKING_UPDATE=true;if(manual)inApp(T("إنجازاتي"),T("جارٍ التحقق من وجود تحديثات…"));
+  try{
+    const res=await fetch('/version.json?_t='+Date.now(),{cache:'no-store'});
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    CHECKING_UPDATE=false;
+    if(data&&data.version&&compareVersions(data.version,CURRENT_APP_VERSION)>0){
+      UPDATE_INFO=data;
+      showUpdateModal(data);
+    }else{
+      UPDATE_INFO=null;
+      if(manual)inApp(T("إنجازاتي"),T("تطبيقك محدّث بالفعل إلى آخر إصدار (")+CURRENT_APP_VERSION+")");
+    }
+  }catch(e){
+    CHECKING_UPDATE=false;
+    if(manual)inApp(T("إنجازاتي"),T("تعذر التحقق من التحديثات حاليًا. تأكد من اتصال الإنترنت."));
+  }
+  renderH();
+}
+function showUpdateModal(data){
+  const m=document.getElementById("modal");
+  const feats=(data.whatsNew||[]).map(f=>'<li style="margin-bottom:6px">'+esc(f)+'</li>').join("");
+  const isNative=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
+  const actText=isNative?T("تحميل التحديث الآن"):T("تحديث وإعادة التحميل الآن");
+  m.innerHTML='<div class="sheet">'
+    +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<div style="width:42px;height:42px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:none">'
+        +ico("i:sparkles","22px")
+      +'</div>'
+      +'<div><b style="font-size:17px">'+T("يتوفر تحديث جديد!")+'</b>'
+        +'<div class="sub">'+T("الإصدار الجديد:")+' <span style="color:var(--acc);font-weight:700">'+esc(data.version)+'</span>'+(data.releaseDate?' • '+esc(data.releaseDate):'')+'</div>'
+      +'</div>'
+    +'</div>'
+    +(feats?'<div style="margin-top:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px"><div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--acc)">'+T("ما الجديد في هذا التحديث:")+'</div><ul style="margin:0;padding-inline-start:20px;font-size:13px;line-height:1.6">'+feats+'</ul></div>':'')
+    +'<div class="row" style="margin-top:16px"><button style="flex:1" onclick="applyAppUpdate()">'+actText+'</button><button class="ghost" onclick="closeEdit()">'+T("لاحقًا")+'</button></div>'
+  +'</div>';
+  openM(m);
+}
+function applyAppUpdate(){
+  if(UPDATE_INFO&&UPDATE_INFO.downloadUrl){
+    const isNative=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
+    if(isNative){window.open(UPDATE_INFO.downloadUrl,'_system');closeEdit();return}
+  }
+  if('caches' in window){
+    caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).finally(()=>{window.location.reload()});
+  }else{
+    window.location.reload();
+  }
+}
+async function shareApp(){
+  const shareData={
+    title:T("إنجازاتي - تنظيم المهام والروتين"),
+    text:T("🎯 جرّب تطبيق «إنجازاتي» لتنظيم مهامك اليومية، تتبّع روتينك، وتحقيق أهدافك بخطوات صغيرة مستمرة:"),
+    url:window.location.origin||"https://enjazati-ebc1a.web.app"
+  };
+  try{
+    if(navigator.share){
+      await navigator.share(shareData);
+    }else{
+      await navigator.clipboard.writeText(shareData.text+"\n"+shareData.url);
+      inApp(T("إنجازاتي"),T("تم نسخ رابط التطبيق ورسالة المشاركة!"));
+    }
+  }catch(e){
+    if(e.name!=='AbortError'){
+      try{await navigator.clipboard.writeText(shareData.url);inApp(T("إنجازاتي"),T("تم نسخ رابط التطبيق!"))}catch(err){}
+    }
+  }
 }
 ICO.mail='<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>';
 ICO.copy='<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>';
+ICO.share='<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>';
+ICO.refresh='<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/>';
+ICO.sparkles='<path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>';
 Object.assign(EN,{
+  "مشاركة التطبيق مع الأصدقاء":"Share app with friends",
+  "شارك إنجازاتي مع من تحب لتبدأوا رحلة الإنجاز معًا.":"Share Enjazati with people you love to achieve goals together.",
+  "مشاركة":"Share",
+  "تم نسخ رابط التطبيق ورسالة المشاركة!":"App link & invite message copied!",
+  "تم نسخ رابط التطبيق!":"App link copied!",
+  "التحقق من التحديثات":"Check for updates",
+  "جارٍ الفحص…":"Checking…",
+  "جارٍ التحقق من وجود تحديثات…":"Checking for updates…",
+  "تطبيقك محدّث بالفعل إلى آخر إصدار (":"Your app is up to date (",
+  "تعذر التحقق من التحديثات حاليًا. تأكد من اتصال الإنترنت.":"Couldn't check for updates. Check internet connection.",
+  "يتوفر تحديث جديد!":"New update available!",
+  "الإصدار الجديد:":"New version:",
+  "ما الجديد في هذا التحديث:":"What's new in this update:",
+  "تحميل التحديث الآن":"Download update now",
+  "تحديث وإعادة التحميل الآن":"Update & reload now",
+  "لاحقًا":"Later",
+  "عرض التحديث":"View update",
+  "يتوفر تحديث":"Update available",
   "لو عندك أي اقتراحات، لا تتردد في التواصل معي:":"If you have any suggestions, feel free to reach out:",
   "نسخ البريد":"Copy email",
   "تم النسخ":"Copied"
 });
+setTimeout(()=>checkAppUpdate(false),3500);
 function copyContactMail(btn){
   const email="anasahmednoubi@gmail.com";
   const ok=()=>{
