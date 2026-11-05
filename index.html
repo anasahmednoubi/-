@@ -1119,6 +1119,7 @@ function linkPageHtml(p){
   if(v)return '<div class="task"><div style="display:flex;align-items:center;gap:12px">'+lnkBadge(p,44)+'<div style="flex:1;min-width:0"><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis" dir="auto">'+esc(v)+'</div><div style="color:#16a34a;font-size:13px;margin-top:2px">'+T("مرتبط")+'</div></div></div>'+syncBlock()+'<button class="ghost" style="width:100%;margin-top:14px;color:#d33" onclick="unLink(\''+p+'\')">'+T("إلغاء الربط")+'</button>'+note+'</div>';
   return '<div class="task"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+lnkBadge(p,32)+'<b>'+T(x.t)+'</b></div><input id="lk'+p+'" type="'+x.ty+'" dir="auto" style="width:100%" placeholder="'+T(x.ph)+'">'+(LERR?'<div style="color:#d33;font-size:13px;margin-top:8px">'+LERR+'</div>':"")+'<button style="width:100%;margin-top:12px" onclick="doLink(\''+p+'\')">'+T(x.t)+'</button>'+note+'</div>';
 }
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
 function sysOk(){try{return "Notification" in window&&Notification.permission==="granted"}catch(e){return false}}
 function inApp(title,body){
   document.querySelectorAll(".nbn").forEach(x=>x.remove());
@@ -1127,17 +1128,85 @@ function inApp(title,body){
   b.querySelector("b").textContent=title;b.querySelector(".t").textContent=body;
   document.body.appendChild(b);setTimeout(()=>b.remove(),3500);
 }
-function showNote(title,body){
-  if(!NOT.on)return;
-  if(sysOk()){try{new Notification(title,{body:body});return}catch(e){}}
+function motLN(){return window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.LocalNotifications}
+async function initMotChannel(){
+  const LN=motLN();
+  if(LN&&LN.createChannel){
+    try{
+      await LN.createChannel({
+        id:'motivational',
+        name:'إشعارات إنجازاتي التحفيزية',
+        description:'رسائل تحفيزية وتذكيرات لإنجاز مهامك وروتينك',
+        importance:4,
+        visibility:1,
+        vibration:true
+      });
+    }catch(e){}
+  }
+}
+async function ensureDeviceNotifPerm(){
+  const LN=motLN();
+  if(LN){
+    try{
+      const pm=await LN.requestPermissions();
+      await initMotChannel();
+      return pm.display==="granted";
+    }catch(e){}
+  }
+  if("Notification" in window){
+    try{
+      let p=Notification.permission;
+      if(p==="default")p=await Notification.requestPermission();
+      return p==="granted";
+    }catch(e){}
+  }
+  return false;
+}
+async function showNote(title,body){
+  const LN=motLN();
+  if(LN){
+    try{
+      await initMotChannel();
+      await LN.schedule({
+        notifications:[{
+          id:Math.floor(Math.random()*90000)+1000,
+          title:title,
+          body:body,
+          channelId:'motivational',
+          schedule:{at:new Date(Date.now()+150),allowWhileIdle:true},
+          sound:true
+        }]
+      });
+      return;
+    }catch(e){
+      console.warn("Native notification failed:",e);
+    }
+  }
+  if('serviceWorker' in navigator&&sysOk()){
+    try{
+      const reg=await navigator.serviceWorker.ready;
+      if(reg&&reg.showNotification){
+        await reg.showNotification(title,{
+          body:body,
+          icon:'/favicon.png',
+          badge:'/favicon.png',
+          tag:'enjazati-'+Date.now(),
+          renotify:true
+        });
+        return;
+      }
+    }catch(e){}
+  }
+  if(sysOk()){
+    try{new Notification(title,{body:body,icon:'/favicon.png'});return}catch(e){}
+  }
   inApp(title,body);
 }
 async function togNote(){
   if(NOT.on){NOT.on=false;NOT.msg="";try{localStorage.setItem("notif-on-v1","0")}catch(e){}renderH();return}
   NOT.on=true;NOT.msg="";try{localStorage.setItem("notif-on-v1","1")}catch(e){}
-  let p="unsupported";
-  try{if("Notification" in window){p=Notification.permission;if(p==="default")p=await Notification.requestPermission()}}catch(e){p="denied"}
-  if(p!=="granted")NOT.msg="إشعارات الجهاز غير متاحة هنا، لذلك ستظهر الإشعارات داخل البرنامج.";
+  const ok=await ensureDeviceNotifPerm();
+  if(!ok)NOT.msg="إشعارات الجهاز غير متاحة هنا، لذلك ستظهر الإشعارات داخل البرنامج.";
   renderH();
   showNote(T("إنجازاتي"),T("تم تفعيل الإشعارات"));
 }
@@ -1152,13 +1221,16 @@ function motText(){
   if(open.length){const t=open[Math.floor(Math.random()*open.length)],m=en?"You still have "+open.length+" task(s). Start with: "+t.name:"ما زال أمامك "+open.length+" مهمة. ابدأ بـ: "+t.name;pool.push(m,m)}
   return pool[Math.floor(Math.random()*pool.length)];
 }
-function motLN(){return window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.LocalNotifications}
 function motTick(){
-  if(!MOT.on||!NOT.on||motLN())return;
-  if(Date.now()-MOT.last>=MOT.min*60000){MOT.last=Date.now();motSave();showNote(T("إنجازاتي"),motText())}
+  if(!MOT.on)return;
+  if(Date.now()-MOT.last>=MOT.min*60000){
+    MOT.last=Date.now();
+    motSave();
+    showNote(T("إنجازاتي"),motText());
+  }
 }
 setInterval(motTick,20000);
-/* داخل تطبيق Capacitor: جدولة إشعارات محلية تظهر حتى لو التطبيق مغلق (الإضافة @capacitor/local-notifications) */
+/* داخل تطبيق الهاتف: جدولة إشعارات محلية تظهر في درج إشعارات الجهاز حتى لو التطبيق مغلق */
 async function motSched(){
   const LN=motLN();if(!LN)return;
   try{
@@ -1166,13 +1238,25 @@ async function motSched(){
     try{await LN.cancel({notifications:ids})}catch(e){}
     if(!MOT.on)return;
     const pm=await LN.requestPermissions();if(pm.display!=="granted")return;
+    await initMotChannel();
     const now=Date.now();
-    await LN.schedule({notifications:ids.map((x,i)=>({id:x.id,title:T("إنجازاتي"),body:motText(),schedule:{at:new Date(now+MOT.min*60000*(i+1))}}))});
-  }catch(e){}
+    await LN.schedule({
+      notifications:ids.map((x,i)=>({
+        id:x.id,
+        title:T("إنجازاتي"),
+        body:motText(),
+        channelId:'motivational',
+        schedule:{at:new Date(now+MOT.min*60000*(i+1)),allowWhileIdle:true},
+        sound:true
+      }))
+    });
+  }catch(e){
+    console.warn("motSched error:",e);
+  }
 }
 document.head.insertAdjacentHTML("beforeend",'<style>.mx{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .35s ease,opacity .3s ease}.mx.open{grid-template-rows:1fr;opacity:1}.mx>.mxi{overflow:hidden;min-height:0;visibility:hidden;transition:visibility .35s}.mx.open>.mxi{visibility:visible}@media (prefers-reduced-motion:reduce){.mx,.mx>.mxi{transition:none}}</style>');
 let MOTO=false,MOTU=MOT.u==="h"?"h":"m";
-Object.assign(EN,{"دقائق":"minutes","ساعات":"hours","اكتب المدة":"Enter duration"});
+Object.assign(EN,{"دقائق":"minutes","ساعات":"hours","اكتب المدة":"Enter duration","تجربة إشعار تحفيزي الآن على جهازك":"Test notification on your device","تم تفعيل الإشعارات التحفيزية على جهازك!":"Motivational notifications enabled on your device!","تم إرسال إشعار تحفيزي إلى جهازك الآن!":"Motivational notification sent to your device now!"});
 function motShow(){return MOTU==="h"?+(MOT.min/60).toFixed(2):MOT.min}
 function motUnit(u){const i=document.getElementById("motc"),v=parseFloat(i.value);if(v>0&&u!==MOTU)i.value=u==="h"?+(v/60).toFixed(2):Math.round(v*60);MOTU=u;MOT.u=u;motSave();i.max=u==="h"?168:10080}
 const MOT_P=[[15,"15 دقيقة"],[30,"30 دقيقة"],[60,"ساعة"],[120,"ساعتان"],[240,"4 ساعات"],[480,"8 ساعات"],[0,"مخصص"]];
@@ -1193,10 +1277,24 @@ function motRefresh(close){
 function togMotDD(){MOTO=!MOTO;const p=document.getElementById("motpn"),d=document.getElementById("motdd");if(p)p.classList.toggle("open",MOTO);if(d)d.setAttribute("aria-expanded",MOTO)}
 function selMot(m){if(m===0){MOTC=true;const i=document.getElementById("motc");if(i)i.value=motShow()}else{MOTC=false;setMotVal(m)}motRefresh(true)}
 function applyMotC(){if(setMotVal(parseFloat(document.getElementById("motc").value)*(MOTU==="h"?60:1))){MOTC=true;motRefresh(true)}}
+async function testMotOnDevice(){
+  await ensureDeviceNotifPerm();
+  const msg=motText();
+  await showNote(T("إنجازاتي"),msg);
+  inApp(T("إنجازاتي"),T("تم إرسال إشعار تحفيزي إلى جهازك الآن!"));
+}
 async function togMot(){
   const on=!MOT.on;
-  if(on&&!NOT.on)await togNote();
-  MOT.on=on;if(on)MOT.last=Date.now();motSave();motSched();
+  MOT.on=on;
+  if(on){
+    MOT.last=Date.now();
+    await ensureDeviceNotifPerm();
+  }
+  motSave();
+  await motSched();
+  if(on){
+    showNote(T("إنجازاتي"),T("تم تفعيل الإشعارات التحفيزية على جهازك!"));
+  }
   const sw=document.getElementById("motsw"),x=document.getElementById("motx");
   if(sw){sw.classList.toggle("on",on);sw.setAttribute("aria-checked",on)}
   if(x)requestAnimationFrame(()=>x.classList.toggle("open",on));
@@ -1207,6 +1305,7 @@ function motCardHtml(){
    +'<div class="mx'+(MOT.on?" open":"")+'" id="motx"><div class="mxi"><div class="sub" style="margin-top:12px">'+T("الفترة بين كل إشعار")+'</div><div style="margin-top:8px"><button class="fdd" id="motdd" onclick="togMotDD()" aria-expanded="false"><span id="motlb">'+motLabel()+'</span>'+ico("i:chevdown","14px")+'</button>'
    +'<div class="mx" id="motpn"><div class="mxi"><div class="fpanel">'+items+'</div></div></div>'
    +'<div class="mx'+(MOTC?" open":"")+'" id="motcx"><div class="mxi"><div class="row" style="margin-top:10px"><input class="num" id="motc" type="number" min="1" max="10080" inputmode="numeric" placeholder="'+T("اكتب المدة")+'" value="'+motShow()+'"><select id="motu" onchange="motUnit(this.value)" aria-label="'+T("الوحدة")+'" style="flex:0 0 auto;width:auto;min-width:0;padding:0 8px;border-radius:12px;border:1px solid var(--line);background:var(--track);color:var(--text);font:inherit"><option value="m"'+(MOTU==="m"?" selected":"")+'>'+T("دقائق")+'</option><option value="h"'+(MOTU==="h"?" selected":"")+'>'+T("ساعات")+'</option></select><button onclick="applyMotC()">'+T("تطبيق")+'</button></div></div></div>'
+   +'<button class="ghost" style="width:100%;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px" onclick="testMotOnDevice()"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span>'+T("تجربة إشعار تحفيزي الآن على جهازك")+'</span></button>'
    +'</div></div></div></div>';
 }
 Object.assign(EN,{"إشعارات تحفيزية":"Motivational notifications","رسائل تشجيعية لإنجاز مهامك وروتينك كل فترة.":"Encouraging messages to help you finish tasks and routines.","الفترة بين كل إشعار":"Time between notifications","أو اكتب عدد الدقائق":"Or enter minutes","تطبيق":"Apply","15 دقيقة":"15 min","30 دقيقة":"30 min","ساعة":"1 hour","ساعتان":"2 hours","4 ساعات":"4 hours","8 ساعات":"8 hours"});
