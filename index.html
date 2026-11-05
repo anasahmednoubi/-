@@ -219,6 +219,7 @@ input:not([type=checkbox]):focus::placeholder{opacity:.3}
 @keyframes cfall{0%{transform:translate3d(0,0,0) rotate(0);opacity:1}85%{opacity:1}100%{transform:translate3d(var(--dx),108vh,0) rotate(var(--rt));opacity:0}}
 .cfb{position:fixed;top:24%;left:50%;z-index:201;pointer-events:none;display:flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;background:#16a34a;color:#fff;font-weight:700;font-size:17px;box-shadow:0 10px 30px rgba(22,163,74,.4);animation:cfb 3.2s ease forwards}
 @keyframes cfb{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}12%{opacity:1;transform:translate(-50%,0) scale(1.08)}20%{transform:translate(-50%,0) scale(1)}80%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-10px) scale(.95)}}
+@keyframes pulseGlow{0%,100%{transform:scale(1);box-shadow:0 0 35px rgba(245,158,11,.45)}50%{transform:scale(1.06);box-shadow:0 0 52px rgba(245,158,11,.75)}}
 @media (prefers-reduced-motion:reduce){.cf{display:none}}
 select.fsel{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--bg);border:1.5px solid var(--line);border-radius:999px;padding:9px 14px;outline:none;min-width:0}
 select.fsel option,select.fsel optgroup{background:var(--card);color:var(--text)}
@@ -792,20 +793,97 @@ function ringD(left,total,p){
     const n=Math.min(total,24),pf=pcf/100*n,mv=SUM.to!==null&&Math.abs(SUM.to-pcf)>.15,cls=mv?(SUM.to>pcf?" wf":" we"):"",ad=-Math.round(performance.now()%1600)+"ms";
     inner=big+'<div style="display:flex;gap:4px">'+Array.from({length:n},(_,i)=>{const w=Math.max(0,Math.min(1,pf-i));return '<span style="flex:1;height:14px;border-radius:5px;background:var(--track);overflow:hidden;display:block"><span class="fill'+cls+'" style="display:block;width:'+(w*100).toFixed(1)+'%;height:100%;border-radius:5px;background:linear-gradient(135deg,'+c1+','+c2+');--ad:'+ad+'"></span></span>'}).join("")+'</div>';
   }
-  return '<div>'+head+inner+foot+'</div>';
+  const finBanner=fin&&total>0?'<div style="margin-top:14px;background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;color:var(--text)"><span style="font-size:18px">🏆</span> <span>'+T("يوم مكتمل 100%! أتممت جميع أهدافك اليوم")+'</span></div><button class="chip on" style="font-size:12px;padding:5px 12px;flex:none;cursor:pointer" onclick="showDayCelebrationModal('+total+')">'+T("عرض الإنجاز")+'</button></div>':'';
+  return '<div>'+head+inner+foot+finBanner+'</div>';
 }
 let prevLeft=null;
-function confetti(){
+function confettiRain(){
   const w=document.createElement("div");w.className="cf";
-  const cl=["#16a34a","#2563eb","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6"];
+  const cl=["#16a34a","#2563eb","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6","#eab308"];
   let h="";
-  for(let i=0;i<70;i++){
+  for(let i=0;i<85;i++){
     const r=Math.random;
-    h+='<i style="left:'+(r()*100).toFixed(1)+'%;background:'+cl[i%cl.length]+';--dx:'+Math.round((r()-.5)*180)+'px;--rt:'+Math.round(300+r()*700)+'deg;--t:'+(2.2+r()*1.6).toFixed(2)+'s;--dl:'+(r()*.9).toFixed(2)+'s;width:'+Math.round(6+r()*5)+'px;height:'+Math.round(10+r()*8)+'px"></i>';
+    h+='<i style="left:'+(r()*100).toFixed(1)+'%;background:'+cl[i%cl.length]+';--dx:'+Math.round((r()-.5)*220)+'px;--rt:'+Math.round(360+r()*720)+'deg;--t:'+(2.4+r()*1.8).toFixed(2)+'s;--dl:'+(r()*1.1).toFixed(2)+'s;width:'+Math.round(7+r()*6)+'px;height:'+Math.round(11+r()*9)+'px"></i>';
   }
   w.innerHTML=h;document.body.appendChild(w);
-  const b=document.createElement("div");b.className="cfb";b.innerHTML=CK+"<span>"+T("ما شاء الله! أنجزت كل مهام اليوم")+"</span>";document.body.appendChild(b);
-  setTimeout(()=>{w.remove();b.remove()},4200);
+  setTimeout(()=>{w.remove()},4500);
+}
+
+function showDayCelebration(total){
+  confettiRain();
+  playTone("melody");
+  try{if(navigator.vibrate)navigator.vibrate([70,50,90,50,120])}catch(e){}
+  showDayCelebrationModal(total);
+}
+
+async function shareDayAchievement(total){
+  const dlUrl=await getAppDownloadUrl();
+  const msg=T("🎯 بفضل الله، أتممت 100% من مهام وروتين اليوم")+" ("+total+" "+T("إنجازات")+") "+T("عبر تطبيق «إنجازاتي»! الخطوات الصغيرة تصنع الفرق الكبير ✨");
+  try{
+    if(navigator.share){
+      await navigator.share({
+        title:T("إنجازي اليوم في تطبيق إنجازاتي"),
+        text:msg,
+        url:dlUrl
+      });
+    }else{
+      await navigator.clipboard.writeText(msg+"\n"+dlUrl);
+      inApp(T("إنجازاتي"),T("تم نسخ رسالة الإنجاز والرابط!"));
+    }
+  }catch(e){
+    if(e.name!=='AbortError'){
+      try{await navigator.clipboard.writeText(msg+"\n"+dlUrl);inApp(T("إنجازاتي"),T("تم نسخ رسالة الإنجاز والرابط!"))}catch(err){}
+    }
+  }
+}
+
+function showDayCelebrationModal(total){
+  const m=document.getElementById("modal");
+  const quotes=[
+    T("«الانضباط اليومي هو الجسر الحقيقي بين أهدافك وإنجازاتك.»"),
+    T("«الخطوات الصغيرة المنتظمة تصنع الفارق العظيم مع مرور الأيام.»"),
+    T("«سر النجاح يكمن في الاستمرار والتكرار، وليس في الحماس المؤقت.»")
+  ];
+  const q=quotes[Math.floor(Math.random()*quotes.length)];
+  m.innerHTML=
+    '<div class="sheet" style="text-align:center;padding:26px 20px 22px;background:radial-gradient(circle at 50% 0%, rgba(124,58,237,.16), transparent 75%), var(--card);border:1px solid rgba(124,58,237,.25);box-shadow:0 14px 45px rgba(0,0,0,.25)">'
+      +'<div style="position:relative;width:86px;height:86px;margin:0 auto 14px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#fbbf24);box-shadow:0 0 35px rgba(245,158,11,.45);display:flex;align-items:center;justify-content:center;color:#fff;animation:pulseGlow 2.2s infinite ease-in-out">'
+        +'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+          +'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>'
+        +'</svg>'
+      +'</div>'
+      +'<div style="display:inline-block;padding:3px 12px;border-radius:999px;background:rgba(245,158,11,.15);color:#d97706;font-size:12px;font-weight:800;letter-spacing:.5px;margin-bottom:8px">'
+        +'✦ '+T("يوم استثنائي مكتمل")+' ✦'
+      +'</div>'
+      +'<b style="font-size:21px;display:block;line-height:1.4;color:var(--text);margin-top:2px">'
+        +T("ما شاء الله! أتممت جميع أهدافك اليوم بنجاح 🎯")
+      +'</b>'
+      +'<div class="sub" style="margin:8px auto 0;max-width:320px;font-size:13.5px;line-height:1.7;color:var(--text)">'
+        +q
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:12px 14px">'
+        +'<div>'
+          +'<div style="font-size:22px;font-weight:800;color:#16a34a;font-variant-numeric:tabular-nums">100%</div>'
+          +'<div class="sub" style="font-size:12px;margin-top:2px">'+T("نسبة الإنجاز")+'</div>'
+        +'</div>'
+        +'<div style="border-inline-start:1px solid var(--border)">'
+          +'<div style="font-size:22px;font-weight:800;color:var(--acc);font-variant-numeric:tabular-nums">'+total+'</div>'
+          +'<div class="sub" style="font-size:12px;margin-top:2px">'+T("مهام وروتينات منجزة")+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.03));border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--text);line-height:1.6;margin-bottom:18px">'
+        +'✨ قَالَ رَسُولُ اللهِ ﷺ: <b>«'+T("أَحَبُّ الأَعْمَالِ إِلَى اللهِ أَدْوَمُهَا وَإِنْ قَلَّ")+'»</b>'
+      +'</div>'
+      +'<div style="display:flex;gap:10px">'
+        +'<button style="flex:1;padding:12px 16px;font-size:14.5px;font-weight:700" onclick="closeEdit()">'
+          +T("متابعة بروح متجددة ✨")
+        +'</button>'
+        +'<button class="ghost" style="flex:none;padding:12px 16px;font-size:13.5px;display:inline-flex;align-items:center;gap:6px" onclick="shareDayAchievement('+total+')">'
+          +ico("i:share","16px")+' <span>'+T("مشاركة")+'</span>'
+        +'</button>'
+      +'</div>'
+    +'</div>';
+  openM(m);
 }
 function drawSum(left,total){
   const el=document.getElementById("dSum");
@@ -830,7 +908,7 @@ function renderD(){
   const left=rs.filter(r=>!r.log[k]).length+ts.filter(t=>!(t.finished||t.dk===k)).length;
   const total=rs.length+ts.length;
   if(document.getElementById("dSum").offsetParent!==null){
-    if(total>0&&prevLeft!==null&&prevLeft>0&&left===0)confetti();
+    if(total>0&&prevLeft!==null&&prevLeft>0&&left===0)showDayCelebration(total);
     prevLeft=total>0?left:null;
   }
   const emp=!tasks.length&&!routines.length;
@@ -1389,7 +1467,7 @@ function renderH(){
   +(UPDATE_INFO?('<div style="margin-top:10px;background:var(--accbg);border:1px solid var(--acc);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:13px;font-weight:600;color:var(--text)">🎉 '+T("يتوفر إصدار جديد:")+' '+esc(UPDATE_INFO.version)+'</div><button class="chip on" style="font-size:12px;padding:5px 10px" onclick="showUpdateModal(UPDATE_INFO)">'+T("عرض التحديث")+'</button></div>'):'')
   +'<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div class="sub" style="font-size:13.5px;line-height:1.6;color:var(--text)">'+T("لو عندك أي اقتراحات، لا تتردد في التواصل معي:")+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap"><a href="mailto:anasahmednoubi@gmail.com" class="chip on" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;direction:ltr;font-family:inherit;font-size:13.5px;padding:7px 12px;font-weight:600">'+ico("i:mail","14px")+' anasahmednoubi@gmail.com</a><button class="ghost" style="padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;font-family:inherit" onclick="copyContactMail(this)">'+ico("i:copy","13px")+' <span>'+T("نسخ البريد")+'</span></button></div></div></div>';
 }
-const CURRENT_APP_VERSION="1.0.0";
+const CURRENT_APP_VERSION="1.2.0";
 let UPDATE_INFO=null,CHECKING_UPDATE=false;
 function compareVersions(v1,v2){
   const p1=String(v1).split('.').map(n=>parseInt(n,10)||0),p2=String(v2).split('.').map(n=>parseInt(n,10)||0),len=Math.max(p1.length,p2.length);
@@ -1447,22 +1525,44 @@ function applyAppUpdate(){
     window.location.reload();
   }
 }
+async function getAppDownloadUrl(){
+  if(UPDATE_INFO&&UPDATE_INFO.downloadUrl&&!UPDATE_INFO.downloadUrl.includes("enjazati-ebc1a.web.app"))return UPDATE_INFO.downloadUrl;
+  try{
+    const cached=localStorage.getItem("app-dl-url");
+    if(cached&&!cached.includes("enjazati-ebc1a.web.app"))return cached;
+    const res=await fetch('/version.json?_t='+Date.now(),{cache:'no-store'});
+    if(res.ok){
+      const data=await res.json();
+      if(data&&data.downloadUrl&&!data.downloadUrl.includes("enjazati-ebc1a.web.app")){
+        localStorage.setItem("app-dl-url",data.downloadUrl);
+        return data.downloadUrl;
+      }
+    }
+  }catch(e){}
+  const fallback=localStorage.getItem("app-dl-url");
+  if(fallback&&!fallback.includes("enjazati-ebc1a.web.app"))return fallback;
+  return "https://github.com/anasahmednoubi/-/releases/latest/download/Enjazati.apk";
+}
 async function shareApp(){
-  const shareData={
-    title:T("إنجازاتي - تنظيم المهام والروتين"),
-    text:T("🎯 جرّب تطبيق «إنجازاتي» لتنظيم مهامك اليومية، تتبّع روتينك، وتحقيق أهدافك بخطوات صغيرة مستمرة:"),
-    url:window.location.origin||"https://enjazati-ebc1a.web.app"
-  };
+  const dlUrl=await getAppDownloadUrl();
+  const shareText=T("🎯 حمّل تطبيق «إنجازاتي» لتنظيم مهامك اليومية، تتبّع روتينك، وتحقيق أهدافك بخطوات صغيرة مستمرة:");
   try{
     if(navigator.share){
-      await navigator.share(shareData);
+      await navigator.share({
+        title: T("تحميل تطبيق إنجازاتي"),
+        text: shareText,
+        url: dlUrl
+      });
     }else{
-      await navigator.clipboard.writeText(shareData.text+"\n"+shareData.url);
-      inApp(T("إنجازاتي"),T("تم نسخ رابط التطبيق ورسالة المشاركة!"));
+      await navigator.clipboard.writeText(shareText+"\n"+dlUrl);
+      inApp(T("إنجازاتي"),T("تم نسخ رابط تحميل التطبيق!"));
     }
   }catch(e){
     if(e.name!=='AbortError'){
-      try{await navigator.clipboard.writeText(shareData.url);inApp(T("إنجازاتي"),T("تم نسخ رابط التطبيق!"))}catch(err){}
+      try{
+        await navigator.clipboard.writeText(shareText+"\n"+dlUrl);
+        inApp(T("إنجازاتي"),T("تم نسخ رابط تحميل التطبيق!"));
+      }catch(err){}
     }
   }
 }
@@ -1492,7 +1592,22 @@ Object.assign(EN,{
   "يتوفر تحديث":"Update available",
   "لو عندك أي اقتراحات، لا تتردد في التواصل معي:":"If you have any suggestions, feel free to reach out:",
   "نسخ البريد":"Copy email",
-  "تم النسخ":"Copied"
+  "تم النسخ":"Copied",
+  "يوم استثنائي مكتمل":"Exceptional Day Completed",
+  "ما شاء الله! أتممت جميع أهدافك اليوم بنجاح 🎯":"Congratulations! You completed all of today's goals 🎯",
+  "«الانضباط اليومي هو الجسر الحقيقي بين أهدافك وإنجازاتك.»":"“Daily discipline is the true bridge between your goals and achievements.”",
+  "«الخطوات الصغيرة المنتظمة تصنع الفارق العظيم مع مرور الأيام.»":"“Small, consistent steps create great differences over time.”",
+  "«سر النجاح يكمن في الاستمرار والتكرار، وليس في الحماس المؤقت.»":"“The secret of success lies in persistence, not temporary excitement.”",
+  "مهام وروتينات منجزة":"Tasks & routines completed",
+  "متابعة بروح متجددة ✨":"Continue with high spirit ✨",
+  "يوم مكتمل 100%! أتممت جميع أهدافك اليوم":"100% Day Completed! You finished all today's goals",
+  "عرض الإنجاز":"View achievement",
+  "عرض بطاقة الإنجاز":"View celebration card",
+  "إنجازي اليوم في تطبيق إنجازاتي":"My achievement today in Enjazati",
+  "إنجازات":"achievements",
+  "عبر تطبيق «إنجازاتي»! الخطوات الصغيرة تصنع الفرق الكبير ✨":"via Enjazati app! Small steps make big differences ✨",
+  "تم نسخ رسالة الإنجاز والرابط!":"Achievement message & link copied!",
+  "🎯 بفضل الله، أتممت 100% من مهام وروتين اليوم":"🎯 Finished 100% of today's tasks and routine"
 });
 setTimeout(()=>checkAppUpdate(false),3500);
 function copyContactMail(btn){

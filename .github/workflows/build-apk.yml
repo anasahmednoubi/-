@@ -9,6 +9,8 @@ jobs:
   build:
     name: Build Enjazati APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Code
@@ -79,10 +81,30 @@ jobs:
         working-directory: ./android
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
+      - name: Prepare APK for Distribution
+        if: success()
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk Enjazati.apk
+
       - name: Upload APK Artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Enjazati-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error 
+          path: Enjazati.apk
+          if-no-files-found: error
+
+      - name: Publish Direct Release APK
+        if: success()
+        continue-on-error: true
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "إنجازاتي - أحدث إصدار مباشر (APK)"
+          body: |
+            🎯 **تطبيق إنجازاتي - أحدث إصدار متاح للتحميل المباشر**
+            
+            يمكنك تحميل ملف الـ APK وتثبيته مباشرة على هاتفك الأندرويد.
+          files: Enjazati.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
