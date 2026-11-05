@@ -1467,16 +1467,42 @@ function renderH(){
   +(UPDATE_INFO?('<div style="margin-top:10px;background:var(--accbg);border:1px solid var(--acc);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:13px;font-weight:600;color:var(--text)">🎉 '+T("يتوفر إصدار جديد:")+' '+esc(UPDATE_INFO.version)+'</div><button class="chip on" style="font-size:12px;padding:5px 10px" onclick="showUpdateModal(UPDATE_INFO)">'+T("عرض التحديث")+'</button></div>'):'')
   +'<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div class="sub" style="font-size:13.5px;line-height:1.6;color:var(--text)">'+T("لو عندك أي اقتراحات، لا تتردد في التواصل معي:")+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap"><a href="mailto:anasahmednoubi@gmail.com" class="chip on" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;direction:ltr;font-family:inherit;font-size:13.5px;padding:7px 12px;font-weight:600">'+ico("i:mail","14px")+' anasahmednoubi@gmail.com</a><button class="ghost" style="padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;font-family:inherit" onclick="copyContactMail(this)">'+ico("i:copy","13px")+' <span>'+T("نسخ البريد")+'</span></button></div></div></div>';
 }
-const CURRENT_APP_VERSION="1.2.0";
+const CURRENT_APP_VERSION="1.2.1";
 let UPDATE_INFO=null,CHECKING_UPDATE=false;
 function compareVersions(v1,v2){
   const p1=String(v1).split('.').map(n=>parseInt(n,10)||0),p2=String(v2).split('.').map(n=>parseInt(n,10)||0),len=Math.max(p1.length,p2.length);
   for(let i=0;i<len;i++){const a=p1[i]||0,b=p2[i]||0;if(a>b)return 1;if(a<b)return -1}
   return 0;
 }
+function showUpToDateModal(){
+  const m=document.getElementById("modal");
+  playTone(TN.t);
+  m.innerHTML='<div class="sheet" style="text-align:center;padding:24px 20px 20px">'
+    +'<div style="width:64px;height:64px;margin:0 auto 14px;border-radius:50%;background:rgba(22,163,74,.14);color:#16a34a;display:flex;align-items:center;justify-content:center;box-shadow:0 0 25px rgba(22,163,74,.25)">'
+      +ico("i:check","32px")
+    +'</div>'
+    +'<div style="display:inline-block;padding:3px 12px;border-radius:999px;background:rgba(22,163,74,.12);color:#15803d;font-size:12px;font-weight:700;margin-bottom:8px">'
+      +'✦ '+T("تطبيقك محدّث بالكامل")+' ✦'
+    +'</div>'
+    +'<b style="font-size:19px;display:block;color:var(--text);line-height:1.4">'
+      +T("أنت على آخر وأحدث إصدار بالفعل! ✨")
+    +'</b>'
+    +'<div class="sub" style="margin:10px auto 0;max-width:320px;font-size:13.5px;line-height:1.7;color:var(--text)">'
+      +T("تطبيقك يعمل بالإصدار الأخير")+' <b style="color:var(--acc)">('+CURRENT_APP_VERSION+')</b>. '+T("لا توجد أي تحديثات جديدة حاليًا، وجميع الميزات والتحسينات لديك محدّثة ومستقرة.")
+    +'</div>'
+    +'<div style="margin-top:20px">'
+      +'<button style="width:100%;padding:12px 18px;font-size:15px;font-weight:700" onclick="closeEdit()">'
+        +T("رائع، شكرًا!")
+      +'</button>'
+    +'</div>'
+  +'</div>';
+  openM(m);
+}
 async function checkAppUpdate(manual){
   if(CHECKING_UPDATE)return;
-  CHECKING_UPDATE=true;if(manual)inApp(T("إنجازاتي"),T("جارٍ التحقق من وجود تحديثات…"));
+  CHECKING_UPDATE=true;
+  renderH();
+  if(manual)inApp(T("إنجازاتي"),T("جارٍ التحقق من وجود تحديثات…"));
   try{
     const res=await fetch('/version.json?_t='+Date.now(),{cache:'no-store'});
     if(!res.ok)throw new Error("HTTP "+res.status);
@@ -1487,7 +1513,10 @@ async function checkAppUpdate(manual){
       showUpdateModal(data);
     }else{
       UPDATE_INFO=null;
-      if(manual)inApp(T("إنجازاتي"),T("تطبيقك محدّث بالفعل إلى آخر إصدار (")+CURRENT_APP_VERSION+")");
+      if(manual){
+        showUpToDateModal();
+        inApp(T("إنجازاتي"),T("تطبيقك محدّث بالفعل إلى آخر إصدار (")+CURRENT_APP_VERSION+")");
+      }
     }
   }catch(e){
     CHECKING_UPDATE=false;
@@ -1606,8 +1635,12 @@ Object.assign(EN,{
   "إنجازي اليوم في تطبيق إنجازاتي":"My achievement today in Enjazati",
   "إنجازات":"achievements",
   "عبر تطبيق «إنجازاتي»! الخطوات الصغيرة تصنع الفرق الكبير ✨":"via Enjazati app! Small steps make big differences ✨",
-  "تم نسخ رسالة الإنجاز والرابط!":"Achievement message & link copied!",
-  "🎯 بفضل الله، أتممت 100% من مهام وروتين اليوم":"🎯 Finished 100% of today's tasks and routine"
+  "🎯 بفضل الله، أتممت 100% من مهام وروتين اليوم":"🎯 Finished 100% of today's tasks and routine",
+  "تطبيقك محدّث بالكامل":"Your app is fully up to date",
+  "أنت على آخر وأحدث إصدار بالفعل! ✨":"You are already on the latest version! ✨",
+  "تطبيقك يعمل بالإصدار الأخير":"Your app is running the latest version",
+  "لا توجد أي تحديثات جديدة حاليًا، وجميع الميزات والتحسينات لديك محدّثة ومستقرة.":"No new updates available right now. All features and improvements are up to date and stable.",
+  "رائع، شكرًا!":"Awesome, thanks!"
 });
 setTimeout(()=>checkAppUpdate(false),3500);
 function copyContactMail(btn){
