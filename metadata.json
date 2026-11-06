@@ -1,5 +1,5 @@
 {
-  "name": "إنجازاتي - Enjazati",
+  "name": "إنجازاتي",
   "description": "تطبيق إنجازاتي لتنظيم المهام والروتين اليومي ومتابعة إنجازك (Daily Tasks and Habits Tracker)",
   "prompt": "Enjazati task and routine tracker application",
   "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
