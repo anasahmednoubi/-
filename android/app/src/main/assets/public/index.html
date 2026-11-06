@@ -1457,6 +1457,7 @@ function renderH(){
   const row=(k,ic,lb,v)=>'<button class="ghost" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:12px 14px" onclick="setSub(\''+k+'\')"><span style="display:flex;align-items:center;gap:10px">'+ico(ic,"20px")+'<span>'+lb+'</span></span><span style="display:flex;align-items:center;gap:6px;color:var(--mute);font-size:14px">'+v+chev(fw)+'</span></button>';
   const thL={auto:"تلقائي",light:"فاتح",dark:"داكن"}[th]||"تلقائي";
   const shareCard='<div class="task" style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(124,58,237,.03));border:1px solid rgba(124,58,237,.3)"><div style="min-width:0"><div style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;color:var(--text)">'+ico("i:share","18px")+' <span>'+T("مشاركة التطبيق مع الأصدقاء")+'</span></div><div class="sub" style="margin-top:4px">'+T("شارك إنجازاتي مع من تحب لتبدأوا رحلة الإنجاز معًا.")+'</div></div><button style="flex:none;padding:8px 16px;font-size:13.5px;display:inline-flex;align-items:center;gap:6px" onclick="shareApp()">'+ico("i:share","15px")+' <span>'+T("مشاركة")+'</span></button></div>';
+  const suggestCard='<div class="task" style="background:linear-gradient(135deg,rgba(16,185,129,.09),rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,.16);color:#10b981;display:flex;align-items:center;justify-content:center;flex:none">'+ico("i:mail","20px")+'</span><div><b style="font-size:15px;color:var(--text)">'+T("شاركنا اقتراحاتك وأفكارك")+'</b><div class="sub" style="font-size:12px;margin-top:2px">'+T("رأيك يصنع الفارق في تطوير التطبيق!")+'</div></div></div><div class="sub" style="font-size:13.5px;line-height:1.7;color:var(--text);margin-bottom:12px">'+T("يسعدني جداً سماع رأيك أو أي أفكار وملاحظات لتطوير التطبيق وجعله أفضل وأكثر فائدة لك:")+'</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><a href="mailto:anasahmednoubi@gmail.com?subject='+encodeURIComponent(T("اقتراح لتطبيق إنجازاتي"))+'" class="chip on" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;direction:ltr;font-family:inherit;font-size:13.5px;padding:7px 14px;font-weight:600">'+ico("i:mail","14px")+' anasahmednoubi@gmail.com</a><button class="ghost" style="padding:7px 12px;font-size:12px;display:inline-flex;align-items:center;gap:4px;font-family:inherit" onclick="copyContactMail(this)">'+ico("i:copy","13px")+' <span>'+T("نسخ البريد")+'</span></button></div></div>';
   pH.innerHTML=
   '<div class="task"><div style="display:flex;align-items:center;gap:12px"><div id="avN" style="width:54px;height:54px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex:none">'+avHtml()+'</div><div style="flex:1;min-width:0">'+greetHtml()+'<div class="sub" style="margin-bottom:4px;overflow-wrap:anywhere">'+accLine()+'</div>'+((isLinked()&&CS.name)?'':'<input style="width:100%" placeholder="'+T("اسمك")+'" value="'+esc(prof.name)+'" oninput="setName(this.value)">')+'</div></div><div class="sub" style="margin-top:10px">'+tasks.length+' '+T("مهمة")+' • '+routines.length+' '+T("روتين")+' — '+T("بياناتك محفوظة على جهازك فقط.")+'</div></div>'+
   '<div class="task"><b>'+T("الإعدادات")+'</b>'+row("font","i:pen",T("الخط"),"")+row("theme","i:palette",T("المظهر"),"")+row("notif","i:bell",T("الإشعارات"),"")+row("link","i:link",T("ربط"),"")+row("lang","i:globe",T("اللغة"),lang==="en"?"English":"العربية")+'<div style="margin-top:14px"><button class="ghost" style="width:100%" onclick="tourReset()">'+T("إعادة الجولة التعريفية")+'</button></div><div style="margin-top:10px"><button class="ghost" style="width:100%;color:#d33" onclick="askWipe()">'+T("مسح جميع البيانات")+'</button></div></div>'+
@@ -1465,9 +1466,10 @@ function renderH(){
   '<div class="task"><b>'+T("عن التطبيق")+'</b><div class="sub" style="margin-top:8px">'+T("إنجازاتي")+' — '+T("تطبيق بسيط لتنظيم المهام والروتين اليومي ومتابعة إنجازك.")+'</div>'
   +'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap"><div class="sub" style="margin:0">'+T("الإصدار")+' '+CURRENT_APP_VERSION+(UPDATE_INFO?' <span style="color:var(--acc);font-weight:700">('+T("يتوفر تحديث")+')</span>':'')+'</div><button class="ghost" style="padding:5px 12px;font-size:12px;display:inline-flex;align-items:center;gap:5px" onclick="checkAppUpdate(true)">'+ico("i:refresh","13px")+' <span>'+(CHECKING_UPDATE?T("جارٍ الفحص…"):T("التحقق من التحديثات"))+'</span></button></div>'
   +(UPDATE_INFO?('<div style="margin-top:10px;background:var(--accbg);border:1px solid var(--acc);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:13px;font-weight:600;color:var(--text)">🎉 '+T("يتوفر إصدار جديد:")+' '+esc(UPDATE_INFO.version)+'</div><button class="chip on" style="font-size:12px;padding:5px 10px" onclick="showUpdateModal(UPDATE_INFO)">'+T("عرض التحديث")+'</button></div>'):'')
-  +'<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div class="sub" style="font-size:13.5px;line-height:1.6;color:var(--text)">'+T("لو عندك أي اقتراحات، لا تتردد في التواصل معي:")+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap"><a href="mailto:anasahmednoubi@gmail.com" class="chip on" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;direction:ltr;font-family:inherit;font-size:13.5px;padding:7px 12px;font-weight:600">'+ico("i:mail","14px")+' anasahmednoubi@gmail.com</a><button class="ghost" style="padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;font-family:inherit" onclick="copyContactMail(this)">'+ico("i:copy","13px")+' <span>'+T("نسخ البريد")+'</span></button></div></div></div>';
+  +'</div>'+
+  suggestCard;
 }
-const CURRENT_APP_VERSION="1.2.1";
+const CURRENT_APP_VERSION="1.2.2";
 let UPDATE_INFO=null,CHECKING_UPDATE=false;
 function compareVersions(v1,v2){
   const p1=String(v1).split('.').map(n=>parseInt(n,10)||0),p2=String(v2).split('.').map(n=>parseInt(n,10)||0),len=Math.max(p1.length,p2.length);
@@ -1498,25 +1500,37 @@ function showUpToDateModal(){
   +'</div>';
   openM(m);
 }
+const REMOTE_VERSION_URL="https://raw.githubusercontent.com/anasahmednoubi/-/main/public/version.json";
+async function fetchVersionInfo(){
+  try{
+    const res=await fetch(REMOTE_VERSION_URL+'?_t='+Date.now(),{cache:'no-store'});
+    if(res.ok)return await res.json();
+  }catch(e){}
+  try{
+    const res=await fetch('/version.json?_t='+Date.now(),{cache:'no-store'});
+    if(res.ok)return await res.json();
+  }catch(e){}
+  return null;
+}
 async function checkAppUpdate(manual){
   if(CHECKING_UPDATE)return;
   CHECKING_UPDATE=true;
   renderH();
   if(manual)inApp(T("إنجازاتي"),T("جارٍ التحقق من وجود تحديثات…"));
   try{
-    const res=await fetch('/version.json?_t='+Date.now(),{cache:'no-store'});
-    if(!res.ok)throw new Error("HTTP "+res.status);
-    const data=await res.json();
+    const data=await fetchVersionInfo();
     CHECKING_UPDATE=false;
     if(data&&data.version&&compareVersions(data.version,CURRENT_APP_VERSION)>0){
       UPDATE_INFO=data;
       showUpdateModal(data);
-    }else{
+    }else if(data&&data.version){
       UPDATE_INFO=null;
       if(manual){
         showUpToDateModal();
         inApp(T("إنجازاتي"),T("تطبيقك محدّث بالفعل إلى آخر إصدار (")+CURRENT_APP_VERSION+")");
       }
+    }else{
+      throw new Error("No version data");
     }
   }catch(e){
     CHECKING_UPDATE=false;
@@ -1559,13 +1573,10 @@ async function getAppDownloadUrl(){
   try{
     const cached=localStorage.getItem("app-dl-url");
     if(cached&&!cached.includes("enjazati-ebc1a.web.app"))return cached;
-    const res=await fetch('/version.json?_t='+Date.now(),{cache:'no-store'});
-    if(res.ok){
-      const data=await res.json();
-      if(data&&data.downloadUrl&&!data.downloadUrl.includes("enjazati-ebc1a.web.app")){
-        localStorage.setItem("app-dl-url",data.downloadUrl);
-        return data.downloadUrl;
-      }
+    const data=await fetchVersionInfo();
+    if(data&&data.downloadUrl&&!data.downloadUrl.includes("enjazati-ebc1a.web.app")){
+      localStorage.setItem("app-dl-url",data.downloadUrl);
+      return data.downloadUrl;
     }
   }catch(e){}
   const fallback=localStorage.getItem("app-dl-url");
@@ -1640,7 +1651,11 @@ Object.assign(EN,{
   "أنت على آخر وأحدث إصدار بالفعل! ✨":"You are already on the latest version! ✨",
   "تطبيقك يعمل بالإصدار الأخير":"Your app is running the latest version",
   "لا توجد أي تحديثات جديدة حاليًا، وجميع الميزات والتحسينات لديك محدّثة ومستقرة.":"No new updates available right now. All features and improvements are up to date and stable.",
-  "رائع، شكرًا!":"Awesome, thanks!"
+  "رائع، شكرًا!":"Awesome, thanks!",
+  "شاركنا اقتراحاتك وأفكارك":"Share your suggestions & ideas",
+  "رأيك يصنع الفارق في تطوير التطبيق!":"Your feedback makes all the difference!",
+  "يسعدني جداً سماع رأيك أو أي أفكار وملاحظات لتطوير التطبيق وجعله أفضل وأكثر فائدة لك:":"I would love to hear your thoughts, ideas, or feedback to make the app even better for you:",
+  "اقتراح لتطبيق إنجازاتي":"Suggestion for Enjazati App"
 });
 setTimeout(()=>checkAppUpdate(false),3500);
 function copyContactMail(btn){
