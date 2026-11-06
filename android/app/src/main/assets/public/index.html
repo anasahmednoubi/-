@@ -820,18 +820,28 @@ async function shareDayAchievement(total){
   const dlUrl=await getAppDownloadUrl();
   const msg=T("🎯 بفضل الله، أتممت 100% من مهام وروتين اليوم")+" ("+total+" "+T("إنجازات")+") "+T("عبر تطبيق «إنجازاتي»! الخطوات الصغيرة تصنع الفرق الكبير ✨");
   try{
+    const CapShare=(typeof Capacitor!=="undefined"&&Capacitor.Plugins&&Capacitor.Plugins.Share)||(typeof window!=="undefined"&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Share);
+    if(CapShare&&typeof CapShare.share==="function"){
+      await CapShare.share({
+        title:T("إنجازي اليوم في تطبيق إنجازاتي"),
+        text:msg,
+        url:dlUrl,
+        dialogTitle:T("مشاركة إنجازك اليوم")
+      });
+      return;
+    }
     if(navigator.share){
       await navigator.share({
         title:T("إنجازي اليوم في تطبيق إنجازاتي"),
         text:msg,
         url:dlUrl
       });
-    }else{
-      await navigator.clipboard.writeText(msg+"\n"+dlUrl);
-      inApp(T("إنجازاتي"),T("تم نسخ رسالة الإنجاز والرابط!"));
+      return;
     }
+    await navigator.clipboard.writeText(msg+"\n"+dlUrl);
+    inApp(T("إنجازاتي"),T("تم نسخ رسالة الإنجاز والرابط!"));
   }catch(e){
-    if(e.name!=='AbortError'){
+    if(e&&e.name!=="AbortError"&&!(e.message&&e.message.toLowerCase().includes("cancel"))){
       try{await navigator.clipboard.writeText(msg+"\n"+dlUrl);inApp(T("إنجازاتي"),T("تم نسخ رسالة الإنجاز والرابط!"))}catch(err){}
     }
   }
@@ -1469,7 +1479,7 @@ function renderH(){
   +'</div>'+
   suggestCard;
 }
-const CURRENT_APP_VERSION="1.2.2";
+const CURRENT_APP_VERSION="1.2.3";
 let UPDATE_INFO=null,CHECKING_UPDATE=false;
 function compareVersions(v1,v2){
   const p1=String(v1).split('.').map(n=>parseInt(n,10)||0),p2=String(v2).split('.').map(n=>parseInt(n,10)||0),len=Math.max(p1.length,p2.length);
@@ -1587,18 +1597,28 @@ async function shareApp(){
   const dlUrl=await getAppDownloadUrl();
   const shareText=T("🎯 حمّل تطبيق «إنجازاتي» لتنظيم مهامك اليومية، تتبّع روتينك، وتحقيق أهدافك بخطوات صغيرة مستمرة:");
   try{
+    const CapShare=(typeof Capacitor!=="undefined"&&Capacitor.Plugins&&Capacitor.Plugins.Share)||(typeof window!=="undefined"&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Share);
+    if(CapShare&&typeof CapShare.share==="function"){
+      await CapShare.share({
+        title:T("تحميل تطبيق إنجازاتي"),
+        text:shareText,
+        url:dlUrl,
+        dialogTitle:T("مشاركة تطبيق إنجازاتي")
+      });
+      return;
+    }
     if(navigator.share){
       await navigator.share({
-        title: T("تحميل تطبيق إنجازاتي"),
-        text: shareText,
-        url: dlUrl
+        title:T("تحميل تطبيق إنجازاتي"),
+        text:shareText,
+        url:dlUrl
       });
-    }else{
-      await navigator.clipboard.writeText(shareText+"\n"+dlUrl);
-      inApp(T("إنجازاتي"),T("تم نسخ رابط تحميل التطبيق!"));
+      return;
     }
+    await navigator.clipboard.writeText(shareText+"\n"+dlUrl);
+    inApp(T("إنجازاتي"),T("تم نسخ رابط تحميل التطبيق!"));
   }catch(e){
-    if(e.name!=='AbortError'){
+    if(e&&e.name!=="AbortError"&&!(e.message&&e.message.toLowerCase().includes("cancel"))){
       try{
         await navigator.clipboard.writeText(shareText+"\n"+dlUrl);
         inApp(T("إنجازاتي"),T("تم نسخ رابط تحميل التطبيق!"));
@@ -1615,6 +1635,10 @@ Object.assign(EN,{
   "مشاركة التطبيق مع الأصدقاء":"Share app with friends",
   "شارك إنجازاتي مع من تحب لتبدأوا رحلة الإنجاز معًا.":"Share Enjazati with people you love to achieve goals together.",
   "مشاركة":"Share",
+  "مشاركة تطبيق إنجازاتي":"Share Enjazati App",
+  "مشاركة إنجازك اليوم":"Share your daily achievement",
+  "تحميل تطبيق إنجازاتي":"Download Enjazati App",
+  "🎯 حمّل تطبيق «إنجازاتي» لتنظيم مهامك اليومية، تتبّع روتينك، وتحقيق أهدافك بخطوات صغيرة مستمرة:":"🎯 Download Enjazati to organize your daily tasks, track habits, and achieve goals:",
   "تم نسخ رابط التطبيق ورسالة المشاركة!":"App link & invite message copied!",
   "تم نسخ رابط التطبيق!":"App link copied!",
   "التحقق من التحديثات":"Check for updates",
